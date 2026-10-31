@@ -3,11 +3,11 @@ import { mockStore } from "@/lib/mock-store";
 import { createActionSchema } from "@/lib/validators/schemas";
 
 export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const nodeId = searchParams.get("node_id");
-    const alertId = searchParams.get("alert_id");
+  const { searchParams } = new URL(req.url);
+  const nodeId = searchParams.get("node_id");
+  const alertId = searchParams.get("alert_id");
 
+  try {
     let actions = [...mockStore.actions];
 
     if (nodeId) {
@@ -22,6 +22,9 @@ export async function GET(req: NextRequest) {
       total: actions.length,
     });
   } catch (error) {
+    if ((error as any)?.digest?.startsWith("NEXT_")) {
+      throw error;
+    }
     console.error("GET /api/actions error:", error);
     return NextResponse.json(
       { error: { code: "internal_error", message: "Gagal mengambil log tindakan" } },
