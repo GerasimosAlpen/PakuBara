@@ -3,11 +3,11 @@ import { mockStore } from "@/lib/mock-store";
 import { createNodeSchema } from "@/lib/validators/schemas";
 
 export async function GET(req: NextRequest) {
-  try {
-    const areaId = req.nextUrl.searchParams.get("area_id");
-    const status = req.nextUrl.searchParams.get("status");
-    const type = req.nextUrl.searchParams.get("type");
+  const areaId = req.nextUrl.searchParams.get("area_id");
+  const status = req.nextUrl.searchParams.get("status");
+  const type = req.nextUrl.searchParams.get("type");
 
+  try {
     let nodes = [...mockStore.nodes];
 
     if (areaId) {
@@ -26,6 +26,9 @@ export async function GET(req: NextRequest) {
       total: nodes.length,
     });
   } catch (error) {
+    if ((error as any)?.digest?.startsWith("NEXT_")) {
+      throw error;
+    }
     console.error("GET /api/nodes error:", error);
     return NextResponse.json(
       { error: { code: "internal_error", message: "Gagal mengambil daftar node" } },
