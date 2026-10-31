@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Flame, Bell, ShieldAlert, Radio, ChevronDown, Activity, Sparkles } from "lucide-react";
+import { Bell, ChevronDown, Sliders, Map, Activity, ShieldCheck } from "lucide-react";
+import { PakuBaraLogo } from "./AppSidebar";
 
 interface AreaOption {
   id: string;
@@ -14,20 +15,20 @@ interface AreaOption {
 const AVAILABLE_AREAS: AreaOption[] = [
   {
     id: "a0000000-0000-0000-0000-000000000001",
-    name: "Blok B Pulau Padang (Riau)",
-    badge: "8 Paku + 2 Gas",
+    name: "Sektor KHG Pulau Padang (Riau)",
+    badge: "24 Paku + 6 CO",
     badgeColor: "bg-red-500",
   },
   {
     id: "a0000000-0000-0000-0000-000000000003",
     name: "KHG Kahayan - Sebangau (Kalteng)",
-    badge: "8 Paku + 2 Gas",
+    badge: "8 Paku + 2 CO",
     badgeColor: "bg-amber-500",
   },
   {
     id: "all",
     name: "Semua Wilayah Operasi (Lintas KHG)",
-    badge: "16 Paku + 4 Gas",
+    badge: "Lintas Provinsi",
     badgeColor: "bg-sky-500",
   },
 ];
@@ -36,18 +37,20 @@ interface AppNavbarProps {
   activeAreaName?: string;
   activeAreaId?: string;
   onSelectArea?: (areaId: string) => void;
+  breadcrumb?: string;
+  pageTitle?: string;
 }
 
 export function AppNavbar({
-  activeAreaName = "Blok B Pulau Padang (Riau)",
+  activeAreaName = "Sektor KHG Pulau Padang (Riau)",
   activeAreaId = "a0000000-0000-0000-0000-000000000001",
   onSelectArea,
+  breadcrumb = "PUSAT OPERASI / PETA KOMANDO",
+  pageTitle,
 }: AppNavbarProps) {
   const [openAlertCount, setOpenAlertCount] = useState<number>(1);
-  const [isLive, setIsLive] = useState<boolean>(true);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
-  // Poll open alerts count
   useEffect(() => {
     async function fetchAlertCount() {
       try {
@@ -65,7 +68,6 @@ export function AppNavbar({
     return () => clearInterval(interval);
   }, []);
 
-  // Keyboard navigation & outside click dismiss
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") setMenuOpen(false);
@@ -75,110 +77,149 @@ export function AppNavbar({
   }, []);
 
   return (
-    <header className="h-14 border-b border-slate-800 bg-slate-900/95 backdrop-blur-md px-4 flex items-center justify-between sticky top-0 z-40 select-none">
-      {/* Brand & Area Selector */}
-      <div className="flex items-center gap-4 sm:gap-6">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center shadow-md shadow-red-950/30 group-hover:bg-red-500 transition-colors">
-            <Flame className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <div className="font-bold text-sm tracking-wider text-slate-100 font-mono flex items-center gap-1.5">
-              PAKUBARA
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-sans font-normal border border-slate-700/60">
-                v2.0
-              </span>
-            </div>
-            <div className="text-[10px] text-slate-400 hidden sm:block">
-              Sistem Deteksi Bara Gambut Bawah Permukaan
-            </div>
-          </div>
+    <header className="min-h-16 border-b border-slate-200 bg-white px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-40 select-none">
+      {/* Left: Mobile Logo + Breadcrumb & Title or Wilayah Selector */}
+      <div className="flex items-center gap-3 sm:gap-4">
+        <Link href="/" className="flex md:hidden items-center gap-2">
+          <PakuBaraLogo className="w-8 h-8" />
+          <span className="font-extrabold text-base tracking-tight">
+            <span className="text-[#0284C7]">Paku</span>
+            <span className="text-[#EA580C]">Bara</span>
+          </span>
         </Link>
 
-        {/* Area dropdown switcher */}
-        <div className="relative flex items-center gap-2 pl-3 sm:pl-4 border-l border-slate-800">
-          <span className="text-xs text-slate-400 hidden lg:inline">Wilayah:</span>
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="flex items-center gap-2 text-xs font-medium text-slate-200 bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-700/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-            aria-haspopup="true"
-            aria-expanded={menuOpen}
-          >
-            <span
-              className={`w-2 h-2 rounded-full ${
-                activeAreaId === "a0000000-0000-0000-0000-000000000003"
-                  ? "bg-amber-400"
-                  : activeAreaId === "all"
-                  ? "bg-sky-400"
-                  : "bg-red-500"
-              }`}
-            />
-            <span className="max-w-[140px] sm:max-w-[200px] truncate">{activeAreaName}</span>
-            <ChevronDown
-              className={`w-3.5 h-3.5 text-slate-400 transition-transform ${
-                menuOpen ? "rotate-180" : ""
-              }`}
-            />
-          </button>
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            {breadcrumb}
+          </div>
+          <div className="flex flex-wrap items-center gap-2.5 mt-0.5">
+            {pageTitle ? (
+              <h1 className="text-sm sm:text-lg font-extrabold text-slate-900 tracking-tight">
+                {pageTitle}
+              </h1>
+            ) : (
+              <h1 className="text-sm sm:text-lg font-extrabold text-slate-900 tracking-tight">
+                Interactive Peat Fire Dashboard: {activeAreaName}
+              </h1>
+            )}
 
-          {menuOpen && (
-            <div
-              className="absolute left-3 top-10 w-72 bg-slate-900 border border-slate-700/90 rounded-xl shadow-2xl p-1.5 z-50 animate-fadeIn"
-              role="menu"
-            >
-              <div className="px-2.5 py-1.5 text-[10px] font-mono uppercase text-slate-400 tracking-wider">
-                Pilih Wilayah Operasi
-              </div>
-              {AVAILABLE_AREAS.map((area) => (
+            {/* Area Switcher Dropdown */}
+            {onSelectArea && (
+              <div className="relative">
                 <button
-                  key={area.id}
-                  onClick={() => {
-                    onSelectArea?.(area.id);
-                    setMenuOpen(false);
-                  }}
-                  className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between transition-colors ${
-                    activeAreaId === area.id
-                      ? "bg-slate-800 text-white font-medium"
-                      : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
-                  }`}
-                  role="menuitem"
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200/80 px-2.5 py-1 rounded-lg border border-slate-200 transition-colors"
+                  aria-haspopup="true"
+                  aria-expanded={menuOpen}
                 >
-                  <div className="flex items-center gap-2 truncate">
-                    <span className={`w-2 h-2 rounded-full ${area.badgeColor}`} />
-                    <span className="truncate">{area.name}</span>
-                  </div>
-                  <span className="text-[10px] font-mono text-slate-400 ml-2 shrink-0">
-                    {area.badge}
-                  </span>
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      activeAreaId === "a0000000-0000-0000-0000-000000000003"
+                        ? "bg-amber-500"
+                        : activeAreaId === "all"
+                        ? "bg-sky-500"
+                        : "bg-red-500"
+                    }`}
+                  />
+                  <span className="max-w-[160px] sm:max-w-[220px] truncate">{activeAreaName}</span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-slate-500 transition-transform ${
+                      menuOpen ? "rotate-180" : ""
+                    }`}
+                  />
                 </button>
-              ))}
-            </div>
-          )}
+
+                {menuOpen && (
+                  <div
+                    className="absolute left-0 top-9 w-72 bg-white border border-slate-200 rounded-xl shadow-xl p-1.5 z-50"
+                    role="menu"
+                  >
+                    <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                      Pilih Wilayah KHG Operasi
+                    </div>
+                    {AVAILABLE_AREAS.map((area) => (
+                      <button
+                        key={area.id}
+                        onClick={() => {
+                          onSelectArea(area.id);
+                          setMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between transition-colors ${
+                          activeAreaId === area.id
+                            ? "bg-slate-100 text-slate-900 font-semibold"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        }`}
+                        role="menuitem"
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <span className={`w-2 h-2 rounded-full ${area.badgeColor}`} />
+                          <span className="truncate">{area.name}</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-slate-500 ml-2 shrink-0">
+                          {area.badge}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Status, Alerts & Quick Access */}
-      <div className="flex items-center gap-2.5">
-        {/* Live WebSocket Status indicator */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/40 border border-emerald-700/50 text-emerald-400 text-xs font-mono">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span className="font-semibold">LIVE LoRa Posko</span>
+      {/* Right: PEMANTAUAN AKTIF Pill + Timestamp + Quick Nav */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        {/* Mobile quick nav */}
+        <div className="flex md:hidden items-center gap-1">
+          <Link
+            href="/app"
+            className="p-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
+            title="Peta Komando"
+          >
+            <Map className="w-4 h-4" />
+          </Link>
+          <Link
+            href="/app/nodes/PK-04"
+            className="p-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
+            title="Diagnostik Sensor"
+          >
+            <Activity className="w-4 h-4" />
+          </Link>
+          <Link
+            href="/app/alerts"
+            className="p-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
+            title="Safety Log & WhatsApp"
+          >
+            <ShieldCheck className="w-4 h-4" />
+          </Link>
         </div>
 
-        {/* Quick Simulator Link for Judges */}
+        {/* PEMANTAUAN AKTIF Pill matching Layar 1 */}
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold tracking-wide">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>PEMANTAUAN AKTIF</span>
+        </div>
+
+        {/* Timestamp matching Layar 1 */}
+        <div className="hidden lg:block text-xs font-mono text-slate-500 border-l border-slate-200 pl-3">
+          24 Okt 2026 | 14:30 WIB
+        </div>
+
+        {/* Simulator Juri Button */}
         <Link
           href="/demo"
-          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition-colors"
         >
-          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <Sliders className="w-3.5 h-3.5 text-amber-600" />
           <span>Simulator Juri</span>
         </Link>
 
         {/* Alert Bell */}
         <Link
           href="/app/alerts"
-          className="relative p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700/80 text-slate-300 transition-colors"
-          title="Pusat Peringatan Dini"
+          className="relative p-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 transition-colors"
+          title="Safety Log & Peringatan Dini"
         >
           <Bell className="w-4 h-4" />
           {openAlertCount > 0 && (
@@ -187,16 +228,7 @@ export function AppNavbar({
             </span>
           )}
         </Link>
-
-        {/* Profile / Admin Indicator */}
-        <Link
-          href="/login"
-          className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/80 font-medium transition-colors"
-        >
-          Satgas Posko
-        </Link>
       </div>
     </header>
   );
 }
-

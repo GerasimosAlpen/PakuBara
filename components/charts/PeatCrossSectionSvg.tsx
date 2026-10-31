@@ -6,179 +6,169 @@ interface PeatCrossSectionSvgProps {
   t20?: number;
   t50?: number;
   t100?: number;
-  waterTableCm?: number; // negative value e.g. -45 cm
+  waterTableCm?: number;
   highlightDepth?: number;
   interactive?: boolean;
 }
 
 export function PeatCrossSectionSvg({
-  t20 = 36.4,
-  t50 = 87.3,
-  t100 = 42.0,
+  t20 = 34,
+  t50 = 542,
+  t100 = 68,
   waterTableCm = -55,
   highlightDepth = 50,
-  interactive = true,
+  interactive = false,
 }: PeatCrossSectionSvgProps) {
   const [selectedDepth, setSelectedDepth] = useState<number>(highlightDepth);
 
-  // Helper for color based on temperature
-  const getTempColor = (temp: number) => {
-    if (temp >= 80) return "#DC2626"; // red
-    if (temp >= 60) return "#EA580C"; // orange
-    if (temp >= 45) return "#F59E0B"; // amber
-    return "#10B981"; // emerald normal
-  };
-
   return (
-    <div className="flex flex-col items-center bg-[#181414] border border-[#2D2424] rounded-xl p-4 w-full">
-      <div className="flex justify-between items-center w-full mb-3">
-        <div>
-          <h4 className="text-sm font-semibold text-white tracking-wide">
-            Penampang Vertikal Gambut (Profil Kedalaman)
-          </h4>
-          <p className="text-xs text-neutral-400">
-            Sensor paku mengukur 3 kedalaman kritis: 20 cm, 50 cm, 100 cm
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-          <span className="text-xs font-mono text-red-400 font-medium">Bara Terdeteksi</span>
-        </div>
+    <div className="flex flex-col bg-[#F8FAFC] border border-slate-200 rounded-xl p-4 w-full select-none">
+      <div className="text-xs font-bold text-slate-700 mb-2.5 flex items-center justify-between">
+        <span>Pipa Probe Stainless SUS 304</span>
+        <span className="text-[11px] font-mono text-slate-500">TMA: {waterTableCm} cm</span>
       </div>
 
-      <div className="relative w-full max-w-lg aspect-[4/3] bg-[#121010] rounded-lg overflow-hidden border border-[#2D2424]">
-        <svg viewBox="0 0 400 300" className="w-full h-full select-none">
+      <div className="relative w-full aspect-[16/10] bg-white rounded-lg overflow-hidden border border-slate-200">
+        <svg viewBox="0 0 460 270" className="w-full h-full">
           <defs>
-            {/* Linear gradients for soil stratigraphy */}
-            <linearGradient id="litterGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#4A3B32" />
-              <stop offset="100%" stopColor="#2F221A" />
+            <linearGradient id="topSoilBand" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#E6F0E2" />
+              <stop offset="100%" stopColor="#D7E6D2" />
             </linearGradient>
-
-            <linearGradient id="smolderGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#381E15" />
-              <stop offset="50%" stopColor="#7C2D12" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#1E130D" />
+            <linearGradient id="upperPeatBand" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#F3EFEA" />
+              <stop offset="100%" stopColor="#EAE3DC" />
             </linearGradient>
-
-            <linearGradient id="deepPeatGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#1C1410" />
-              <stop offset="100%" stopColor="#0B0806" />
+            <linearGradient id="pyrolysisBand" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#FDE8E8" />
+              <stop offset="50%" stopColor="#FBD5D5" />
+              <stop offset="100%" stopColor="#F3E5D8" />
             </linearGradient>
-
-            {/* Ember radial glow */}
-            <radialGradient id="emberGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#EA580C" stopOpacity="1" />
-              <stop offset="40%" stopColor="#EF4444" stopOpacity="0.7" />
-              <stop offset="100%" stopColor="#7C2D12" stopOpacity="0" />
+            <linearGradient id="deepPeatBand" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#E5DDD3" />
+              <stop offset="100%" stopColor="#D6CBBF" />
+            </linearGradient>
+            <radialGradient id="pyrolysisCore" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#DC2626" stopOpacity="0.45" />
+              <stop offset="55%" stopColor="#EA580C" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#EA580C" stopOpacity="0" />
             </radialGradient>
           </defs>
 
-          {/* Layer 1: Surface Vegetation & Litter (0 to -20cm) */}
-          <rect x="0" y="30" width="400" height="40" fill="url(#litterGrad)" />
-          <line x1="0" y1="30" x2="400" y2="30" stroke="#10B981" strokeWidth="2.5" />
-          <text x="12" y="55" fill="#A3A3A3" fontSize="10" fontFamily="monospace">
-            0 - 20 cm: Serasah & Gambut Kering (Aerobik)
-          </text>
+          {/* Sky / Above Surface */}
+          <rect x="0" y="0" width="460" height="42" fill="#F8FAFC" />
 
-          {/* Layer 2: Smoldering Pyrolysis Zone (20 to 60cm) */}
-          <rect x="0" y="70" width="400" height="90" fill="url(#smolderGrad)" />
-          <text x="12" y="115" fill="#F97316" fontSize="10" fontWeight="bold" fontFamily="monospace">
-            20 - 60 cm: Zona Pirolisis & Pembaraan Tanpa Lidah Api
-          </text>
+          {/* 0 cm Surface Grass Line */}
+          <rect x="0" y="42" width="460" height="38" fill="url(#topSoilBand)" />
+          <line x1="0" y1="42" x2="460" y2="42" stroke="#16A34A" strokeWidth="2.5" />
 
-          {/* Ember heat core around 50cm */}
-          <ellipse cx="200" cy="120" rx="90" ry="30" fill="url(#emberGlow)" />
+          {/* 20 cm Layer */}
+          <rect x="0" y="80" width="460" height="45" fill="url(#upperPeatBand)" />
+          <line x1="0" y1="80" x2="460" y2="80" stroke="#CBD5E1" strokeWidth="1" strokeDasharray="4,4" />
 
-          {/* Layer 3: Deep Peat & Saturated Zone (60 to 120cm) */}
-          <rect x="0" y="160" width="400" height="140" fill="url(#deepPeatGrad)" />
-          <text x="12" y="210" fill="#737373" fontSize="10" fontFamily="monospace">
-            60 - 120 cm: Gambut Dalam Jenuh Air (Anaerobik)
-          </text>
+          {/* 50 cm Pyrolysis Zone */}
+          <rect x="0" y="125" width="460" height="75" fill="url(#pyrolysisBand)" />
+          <line x1="0" y1="125" x2="460" y2="125" stroke="#FCA5A5" strokeWidth="1" strokeDasharray="4,4" />
 
-          {/* Water Table (TMA - Tinggi Muka Air Tanah) */}
-          <g>
-            <line
-              x1="0"
-              y1="130"
-              x2="400"
-              y2="130"
-              stroke="#38BDF8"
-              strokeWidth="1.5"
-              strokeDasharray="6,4"
-            />
-            <rect x="270" y="122" width="120" height="16" rx="3" fill="#0369A1" fillOpacity="0.8" />
-            <text x="275" y="134" fill="#E0F2FE" fontSize="9" fontFamily="monospace">
-              TMA: {waterTableCm} cm (Kritis)
-            </text>
-          </g>
+          {/* 100 cm Deep Peat Layer */}
+          <rect x="0" y="200" width="460" height="70" fill="url(#deepPeatBand)" />
+          <line x1="0" y1="200" x2="460" y2="200" stroke="#CBD5E1" strokeWidth="1" strokeDasharray="4,4" />
 
-          {/* The Paku Probe Stainless Steel Shaft */}
-          <rect x="198" y="20" width="4" height="230" fill="#94A3B8" rx="2" />
-          {/* Probe Top Transceiver Housing */}
-          <rect x="190" y="10" width="20" height="15" fill="#EA580C" rx="3" />
-          <text x="195" y="21" fill="#FFFFFF" fontSize="8" fontWeight="bold">LoRa</text>
-
-          {/* Sensor 1: 20 cm (y = 70) */}
+          {/* Concentric Pyrolysis Glow around 50 cm */}
+          <ellipse cx="195" cy="160" rx="95" ry="34" fill="url(#pyrolysisCore)" />
           <circle
-            cx="200"
-            cy="70"
-            r="6"
-            fill={getTempColor(t20)}
-            stroke="#FFFFFF"
+            cx="195"
+            cy="160"
+            r="26"
+            fill="none"
+            stroke="#EF4444"
+            strokeWidth="1.5"
+            strokeDasharray="4,3"
+          />
+
+          {/* Depth Ruler Labels on Left */}
+          <text x="16" y="36" fill="#475569" fontSize="11" fontFamily="monospace" fontWeight="700">
+            0 cm
+          </text>
+          <text x="58" y="36" fill="#64748B" fontSize="10">
+            Permukaan tanah
+          </text>
+
+          <text x="16" y="96" fill="#475569" fontSize="11" fontFamily="monospace" fontWeight="700">
+            20 cm
+          </text>
+
+          <text x="16" y="164" fill="#DC2626" fontSize="11" fontFamily="monospace" fontWeight="800">
+            50 cm
+          </text>
+
+          <text x="16" y="232" fill="#475569" fontSize="11" fontFamily="monospace" fontWeight="700">
+            100 cm
+          </text>
+
+          {/* Stainless Probe Top Cap (LoRa Transmitter Box) */}
+          <rect
+            x="177"
+            y="10"
+            width="36"
+            height="22"
+            rx="4"
+            fill="#1E293B"
+            stroke="#0F172A"
             strokeWidth="1.5"
           />
-          <text x="215" y="74" fill="#FFFFFF" fontSize="11" fontWeight="bold" fontFamily="monospace">
-            20 cm: {t20}°C
+          <text x="184" y="24" fill="#FFFFFF" fontSize="9" fontFamily="monospace" fontWeight="700">
+            LoRa
           </text>
 
-          {/* Sensor 2: 50 cm (y = 120) - Ember Zone */}
-          <circle
-            cx="200"
-            cy="120"
-            r="8"
-            fill={getTempColor(t50)}
-            stroke="#FEF08A"
-            strokeWidth="2"
-            className="animate-pulse"
+          {/* Stainless Steel SUS 304 Rod */}
+          <rect
+            x="191"
+            y="32"
+            width="8"
+            height="212"
+            rx="4"
+            fill="#94A3B8"
+            stroke="#475569"
+            strokeWidth="1.2"
           />
-          <text x="215" y="124" fill="#FEF08A" fontSize="12" fontWeight="bold" fontFamily="monospace">
-            50 cm: {t50}°C (Pusat Bara)
+          {/* Pointed Tip */}
+          <polygon points="191,242 199,242 195,256" fill="#475569" />
+
+          {/* Sensor Node 20 cm */}
+          <circle cx="195" cy="92" r="6" fill="#16A34A" stroke="#FFFFFF" strokeWidth="2" />
+          <text x="212" y="96" fill="#15803D" fontSize="12" fontFamily="monospace" fontWeight="800">
+            {t20}°C
+          </text>
+          <text x="262" y="96" fill="#64748B" fontSize="10">
+            (Lapisan atas aman)
           </text>
 
-          {/* Sensor 3: 100 cm (y = 210) */}
-          <circle
-            cx="200"
-            cy="210"
-            r="6"
-            fill={getTempColor(t100)}
-            stroke="#FFFFFF"
-            strokeWidth="1.5"
-          />
-          <text x="215" y="214" fill="#FFFFFF" fontSize="11" fontWeight="bold" fontFamily="monospace">
-            100 cm: {t100}°C
+          {/* Sensor Node 50 cm (Pyrolysis Core) */}
+          <circle cx="195" cy="160" r="8" fill="#DC2626" stroke="#FFFFFF" strokeWidth="2" />
+          <text x="214" y="157" fill="#DC2626" fontSize="13" fontFamily="monospace" fontWeight="800">
+            {t50}°C
+          </text>
+          <text x="214" y="172" fill="#B91C1C" fontSize="10" fontWeight="800">
+            BARA AKTIF · ZONA PIROLISIS
           </text>
 
-          {/* Infiltration & Air Injection Arrow */}
-          <g>
-            <path
-              d="M 120 70 L 120 115"
-              stroke="#F59E0B"
-              strokeWidth="2"
-              markerEnd="url(#arrow)"
-            />
-            <text x="50" y="95" fill="#F59E0B" fontSize="9" fontFamily="sans-serif">
-              Injeksi Air Disarankan
-            </text>
-          </g>
+          {/* Sensor Node 100 cm */}
+          <circle cx="195" cy="228" r="6" fill="#D97706" stroke="#FFFFFF" strokeWidth="2" />
+          <text x="212" y="232" fill="#B45309" fontSize="12" fontFamily="monospace" fontWeight="800">
+            {t100}°C
+          </text>
+          <text x="262" y="232" fill="#64748B" fontSize="10">
+            (Gambut dalam)
+          </text>
         </svg>
       </div>
 
       {interactive && (
-        <div className="w-full mt-4 bg-[#121010] p-3 rounded-lg border border-[#2D2424]">
-          <div className="flex justify-between text-xs text-neutral-300 mb-1">
-            <span>Kedalaman Injeksi Nozzle:</span>
-            <span className="font-mono text-amber-400 font-bold">{selectedDepth} cm</span>
+        <div className="w-full mt-3 bg-white p-3 rounded-lg border border-slate-200">
+          <div className="flex justify-between text-xs text-slate-700 mb-1">
+            <span className="font-medium">Simulasi Kedalaman Suntik Peat Nozzle:</span>
+            <span className="font-mono text-emerald-700 font-bold">{selectedDepth} cm</span>
           </div>
           <input
             type="range"
@@ -187,11 +177,11 @@ export function PeatCrossSectionSvg({
             step="5"
             value={selectedDepth}
             onChange={(e) => setSelectedDepth(Number(e.target.value))}
-            className="w-full h-1.5 bg-[#2D2424] rounded-lg appearance-none cursor-pointer accent-[#EA580C]"
+            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#0D2B1D]"
           />
-          <div className="flex justify-between text-[10px] text-neutral-500 mt-1">
+          <div className="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
             <span>Dangkal (10 cm)</span>
-            <span>Optimal Bara ({highlightDepth} cm)</span>
+            <span>Inti Pirolisis ({highlightDepth} cm)</span>
             <span>Dalam (100 cm)</span>
           </div>
         </div>
@@ -199,4 +189,3 @@ export function PeatCrossSectionSvg({
     </div>
   );
 }
-
