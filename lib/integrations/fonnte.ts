@@ -57,22 +57,24 @@ export function formatResolvedMessage(nodeId: string, areaName: string): string 
 }
 
 /**
- * Sends a WhatsApp message via Fonnte API with graceful fallback.
+ * Sends a WhatsApp message via Fonnte API.
  */
 export async function sendWhatsAppMessage(
   target: string,
   message: string
 ): Promise<FonnteSendResult> {
-  const token = process.env.FONNTE_TOKEN;
-  const targetNumber = target || process.env.FONNTE_DEFAULT_TARGET;
+  const token = (process.env.FONNTE_TOKEN || "").trim().replace(/^["']|["']$/g, "");
+  const rawTarget = target || process.env.FONNTE_DEFAULT_TARGET || "";
+  const targetNumber = rawTarget.trim().replace(/^["']|["']$/g, "").replace(/[^\d]/g, "");
 
   if (!token || !targetNumber) {
-    console.warn("Fonnte token or target number missing. Simulating WhatsApp send.");
+    const errorMsg = `FONNTE_TOKEN atau nomor target tidak valid (token: ${token ? "ADA" : "KOSONG"}, target: ${targetNumber || "KOSONG"})`;
+    console.error(errorMsg);
     return {
-      success: true,
-      status: "queued",
+      success: false,
+      status: "failed",
       messageText: message,
-      providerResponse: { simulated: true, reason: "FONNTE_TOKEN or target not set" },
+      providerResponse: { error: errorMsg },
     };
   }
 
@@ -118,4 +120,3 @@ export async function sendWhatsAppMessage(
     };
   }
 }
-

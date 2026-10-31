@@ -82,16 +82,16 @@ export default function AlertsCenterPage() {
       const res = await fetch("/api/alerts/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target_phone: testPhone }),
+        body: JSON.stringify({ target: testPhone, target_phone: testPhone }),
       });
       const json = await res.json();
       if (json.success) {
-        setWaResult("Notifikasi WhatsApp terkirim ke nomor uji.");
+        setWaResult(`✓ Pesan WhatsApp terkirim ke ${testPhone}! Detail: ${json.provider_response?.detail || "Terkirim"}`);
       } else {
-        setWaResult(`Status: ${json.error || "Terkirim via simulasi"}`);
+        setWaResult(`Gagal: ${json.error || JSON.stringify(json.provider_response || "Koneksi Fonnte bermasalah")}`);
       }
-    } catch {
-      setWaResult("Pesan darurat disimulasikan.");
+    } catch (err) {
+      setWaResult(`Error koneksi: ${String(err)}`);
     } finally {
       setSendingWa(false);
     }

@@ -148,13 +148,13 @@ export default function DemoPage() {
       const res = await fetch("/api/alerts/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target_phone: testPhone }),
+        body: JSON.stringify({ target: testPhone, target_phone: testPhone }),
       });
       const data = await res.json();
       if (data.success) {
-        setResultMessage(data.message);
+        setResultMessage(`✓ Notifikasi WhatsApp terkirim ke ${testPhone}! Detail: ${data.provider_response?.detail || "Terkirim"}`);
       } else {
-        setResultMessage(`Gagal kirim WhatsApp: ${data.error}`);
+        setResultMessage(`Gagal kirim WhatsApp: ${data.error || JSON.stringify(data.provider_response)}`);
       }
     } catch (err) {
       setResultMessage(`Error: ${String(err)}`);

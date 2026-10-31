@@ -30,13 +30,13 @@ export default function SettingsPage() {
       const res = await fetch("/api/alerts/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target_phone: testNumber }),
+        body: JSON.stringify({ target: testNumber, target_phone: testNumber }),
       });
       const json = await res.json();
       if (json.success) {
-        setTestSuccess(json.message);
+        setTestSuccess(`✓ Pesan WhatsApp terkirim ke ${testNumber}! Detail: ${json.provider_response?.detail || "Terkirim"}`);
       } else {
-        setTestSuccess(`Gagal: ${json.error}`);
+        setTestSuccess(`Gagal: ${json.error || JSON.stringify(json.provider_response)}`);
       }
     } catch (err) {
       setTestSuccess(`Error: ${String(err)}`);
