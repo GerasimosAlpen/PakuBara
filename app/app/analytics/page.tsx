@@ -3,130 +3,129 @@
 import React from "react";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
-import { TrendingUp, Droplets, Radio, Battery } from "lucide-react";
+import {
+  BarChart3,
+  TrendingUp,
+  Droplets,
+  Radio,
+  Battery,
+  ShieldCheck,
+  CheckCircle2,
+} from "lucide-react";
 
 export default function AnalyticsPage() {
   return (
-    <div className="min-h-screen bg-[#F6F8F7] text-slate-900 flex select-none">
-      <AppSidebar />
+    <div className="min-h-screen bg-[#121010] text-[#F3F4F6] flex flex-col select-none">
+      <AppNavbar />
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <AppNavbar
-          breadcrumb="ANALITIK & REGULASI / ANALITIK EFISIENSI"
-          pageTitle="Analitik Efisiensi Penanggulangan & Keandalan Jaringan LoRaWAN"
-        />
+      <div className="flex flex-1 overflow-hidden">
+        <AppSidebar />
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+        <main className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Header */}
+          <div className="border-b border-[#2D2424] pb-4">
+            <h1 className="text-xl font-bold font-mono text-white flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-[#EA580C]" />
+              ANALITIK & EFISIENSI PENANGGULANGAN
+            </h1>
+            <p className="text-xs text-neutral-400 mt-1">
+              Metrik performa jaringan LoRa 433 MHz, efisiensi konsumsi air suntik gambut, dan tren anomali suhu.
+            </p>
+          </div>
+
+          {/* 4 Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <div className="p-4 rounded-xl bg-[#181414] border border-[#2D2424]">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Uptime Jaringan</span>
-                <Radio className="w-4 h-4 text-emerald-600" />
+                <span className="text-[10px] font-mono text-neutral-400 uppercase">Uptime Jaringan</span>
+                <Radio className="w-4 h-4 text-emerald-400" />
               </div>
-              <div className="text-2xl font-extrabold font-mono text-emerald-700 mt-1.5">
-                99.4%
-              </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">
-                Paket hilang: 0.6% (LoRa SF10)
-              </div>
+              <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">99.4%</div>
+              <div className="text-[10px] text-neutral-500 mt-0.5">Paket hilang: 0.6% (LoRa SF10)</div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <div className="p-4 rounded-xl bg-[#181414] border border-[#2D2424]">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Penghematan Air</span>
-                <Droplets className="w-4 h-4 text-sky-600" />
+                <span className="text-[10px] font-mono text-neutral-400 uppercase">Penghematan Air</span>
+                <Droplets className="w-4 h-4 text-sky-400" />
               </div>
-              <div className="text-2xl font-extrabold font-mono text-sky-600 mt-1.5">
-                55%
-              </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">
-                120L/titik vs siram permukaan konvensional
-              </div>
+              <div className="text-2xl font-bold font-mono text-sky-400 mt-1">82%</div>
+              <div className="text-[10px] text-neutral-500 mt-0.5">Dibandingkan water bombing udara</div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <div className="p-4 rounded-xl bg-[#181414] border border-[#2D2424]">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Waktu Kirim Alert WA</span>
-                <TrendingUp className="w-4 h-4 text-amber-600" />
+                <span className="text-[10px] font-mono text-neutral-400 uppercase">Rata-rata Respon</span>
+                <TrendingUp className="w-4 h-4 text-amber-400" />
               </div>
-              <div className="text-2xl font-extrabold font-mono text-amber-700 mt-1.5">
-                1.8 Detik
-              </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">
-                Target SLA &lt; 60 Detik ke Regu MPA
-              </div>
+              <div className="text-2xl font-bold font-mono text-amber-400 mt-1">18 Menit</div>
+              <div className="text-[10px] text-neutral-500 mt-0.5">Dari deteksi hingga regu tiba</div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+            <div className="p-4 rounded-xl bg-[#181414] border border-[#2D2424]">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Daya Baterai Rata-rata</span>
-                <Battery className="w-4 h-4 text-emerald-600" />
+                <span className="text-[10px] font-mono text-neutral-400 uppercase">Daya Baterai Rata-rata</span>
+                <Battery className="w-4 h-4 text-emerald-400" />
               </div>
-              <div className="text-2xl font-extrabold font-mono text-slate-900 mt-1.5">
-                3.88 V
-              </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">
-                Proyeksi masa pakai: 19 bulan
-              </div>
+              <div className="text-2xl font-bold font-mono text-white mt-1">3.88 V</div>
+              <div className="text-[10px] text-neutral-500 mt-0.5">Proyeksi sisa daya: 19 bulan</div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-              <h3 className="text-sm font-extrabold text-slate-900">
-                Studi Komparasi Pemadaman: Injeksi Peat Nozzle vs Siram Permukaan
+          {/* Analisis Efisiensi Pemadaman Gambut */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="p-5 rounded-xl bg-[#181414] border border-[#2D2424] space-y-4">
+              <h3 className="text-sm font-semibold text-white uppercase tracking-wider font-mono">
+                Studi Komparasi Pemadaman: Injeksi Nozzle vs Helikopter
               </h3>
 
               <div className="space-y-3 text-xs">
-                <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200">
-                  <div className="flex justify-between font-extrabold text-slate-900 mb-1">
-                    <span>Metode PakuBara (Injeksi Peat Nozzle Kedalaman 50 cm)</span>
-                    <span className="text-emerald-700 font-mono">120 Liter / titik</span>
+                <div className="p-3 rounded-lg bg-[#121010] border border-[#261E1E]">
+                  <div className="flex justify-between font-bold text-white mb-1">
+                    <span>Metode PakuBara (Injeksi Nozzle Gambut Kedalaman 50cm)</span>
+                    <span className="text-emerald-400 font-mono">Rp 4.500.000 / titik</span>
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Air dialirkan langsung ke zona pirolisis tengah (50 cm). Memutus reaksi oksidasi
-                    bawah tanah secara presisi dengan penghematan air 52-55%.
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    Air dialirkan langsung ke inti bara pirolisis. Membutuhkan rata-rata 600 - 800 Liter air
+                    dengan keberhasilan padam 100% tanpa rekurensi bara.
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-red-50/70 border border-red-200">
-                  <div className="flex justify-between font-extrabold text-slate-900 mb-1">
-                    <span>Metode Konvensional (Siram Permukaan / Water Bombing)</span>
-                    <span className="text-red-600 font-mono">&gt;260 Liter / titik</span>
+                <div className="p-3 rounded-lg bg-[#121010] border border-[#261E1E]">
+                  <div className="flex justify-between font-bold text-white mb-1">
+                    <span>Metode Konvensional (Water Bombing Helikopter)</span>
+                    <span className="text-red-400 font-mono">Rp 120.000.000 / sortie</span>
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Air tertahan di lapisan serasah hidrofobik atas (20 cm, 34°C) tanpa menembus
-                    inti bara 542°C di kedalaman 50 cm, sehingga api sering menyala kembali.
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    Air menguap di kanopi pohon sebelum mencapai lapisan gambut dalam. Rawan menyala kembali
+                    dalam 24 - 48 jam jika tertiup angin kencang.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-              <h3 className="text-sm font-extrabold text-slate-900">
-                Metrik Keandalan Jaringan LoRaWAN &amp; Fusi Sinyal
+            {/* Statistik Integritas Sinyal & Hardware */}
+            <div className="p-5 rounded-xl bg-[#181414] border border-[#2D2424] space-y-4">
+              <h3 className="text-sm font-semibold text-white uppercase tracking-wider font-mono">
+                Metrik Keandalan Jaringan LoRa 433 MHz
               </h3>
 
               <div className="space-y-3 text-xs">
-                <div className="flex justify-between items-center py-2.5 border-b border-slate-100">
-                  <span className="text-slate-600">Total Paket Telemetri 24 Jam:</span>
-                  <span className="font-mono font-extrabold text-slate-900">2.880 Paket</span>
+                <div className="flex justify-between items-center py-2 border-b border-[#261E1E]">
+                  <span className="text-neutral-400">Total Paket Telemetri 24 Jam:</span>
+                  <span className="font-mono font-bold text-white">2.880 Paket</span>
                 </div>
-                <div className="flex justify-between items-center py-2.5 border-b border-slate-100">
-                  <span className="text-slate-600">Rata-rata RSSI Penerimaan Posko KHG Riau:</span>
-                  <span className="font-mono font-extrabold text-emerald-700">
-                    -82 dBm (Sangat Baik)
-                  </span>
+                <div className="flex justify-between items-center py-2 border-b border-[#261E1E]">
+                  <span className="text-neutral-400">Rata-rata RSSI Penerimaan Posko:</span>
+                  <span className="font-mono font-bold text-sky-400">-82.4 dBm (Sangat Baik)</span>
                 </div>
-                <div className="flex justify-between items-center py-2.5 border-b border-slate-100">
-                  <span className="text-slate-600">Rasio Signal-to-Noise (SNR):</span>
-                  <span className="font-mono font-extrabold text-slate-900">+7.5 dB</span>
+                <div className="flex justify-between items-center py-2 border-b border-[#261E1E]">
+                  <span className="text-neutral-400">Rasio Signal-to-Noise (SNR):</span>
+                  <span className="font-mono font-bold text-emerald-400">+7.8 dB</span>
                 </div>
-                <div className="flex justify-between items-center py-2.5">
-                  <span className="text-slate-600">Filtrasi Alarm Palsu (Fusi 2-dari-3 Sinyal):</span>
-                  <span className="font-mono font-extrabold text-sky-700">
-                    100% Tervalidasi
-                  </span>
+                <div className="flex justify-between items-center py-2 border-b border-[#261E1E]">
+                  <span className="text-neutral-400">Tingkat Penolakan Alarm Palsu CO:</span>
+                  <span className="font-mono font-bold text-amber-400">100% (2 Insiden Gas Tersaring)</span>
                 </div>
               </div>
             </div>
@@ -136,3 +135,4 @@ export default function AnalyticsPage() {
     </div>
   );
 }
+

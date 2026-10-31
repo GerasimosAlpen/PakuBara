@@ -3,13 +3,22 @@
 import React, { useState } from "react";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
-import { Sliders, Phone, Save, Send, CheckCircle2 } from "lucide-react";
+import {
+  Settings,
+  Sliders,
+  Key,
+  Phone,
+  Save,
+  Send,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 
 export default function SettingsPage() {
-  const [tempThreshold, setTempThreshold] = useState<number>(450);
+  const [tempThreshold, setTempThreshold] = useState<number>(60);
   const [rateThreshold, setRateThreshold] = useState<number>(5.0);
-  const [coThreshold, setCoThreshold] = useState<number>(100);
-  const [safeHoursReq, setSafeHoursReq] = useState<number>(72);
+  const [coThreshold, setCoThreshold] = useState<number>(50);
+  const [safeDaysReq, setSafeDaysReq] = useState<number>(3);
   const [phoneRecipients, setPhoneRecipients] = useState<string>("6281234567890, 6289876543210");
   const [testNumber, setTestNumber] = useState<string>("");
   const [savedSuccess, setSavedSuccess] = useState<boolean>(false);
@@ -46,45 +55,57 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F8F7] text-slate-900 flex select-none">
-      <AppSidebar />
+    <div className="min-h-screen bg-[#121010] text-[#F3F4F6] flex flex-col select-none">
+      <AppNavbar />
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <AppNavbar
-          breadcrumb="ANALITIK & REGULASI / PARAMETER SISTEM"
-          pageTitle="Kalibrasi Ambang Fisika Bara & Konfigurasi Notifikasi WhatsApp"
-        />
+      <div className="flex flex-1 overflow-hidden">
+        <AppSidebar />
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 max-w-4xl">
+        <main className="flex-1 overflow-y-auto p-6 space-y-6 max-w-4xl">
+          {/* Header */}
+          <div className="border-b border-[#2D2424] pb-4">
+            <h1 className="text-xl font-bold font-mono text-white flex items-center gap-2">
+              <Settings className="w-5 h-5 text-[#EA580C]" />
+              PENGATURAN PARAMETER SISTEM
+            </h1>
+            <p className="text-xs text-neutral-400 mt-1">
+              Kalibrasi nilai ambang fisika bara, toleransi alarm fusi, dan konfigurasi integrasi WhatsApp.
+            </p>
+          </div>
+
           {savedSuccess && (
-            <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-800 text-emerald-300 text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>Pengaturan parameter sistem berhasil diperbarui.</span>
             </div>
           )}
 
-          <form onSubmit={handleSaveSettings} className="space-y-5">
-            <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-              <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-emerald-700" />
-                <span>1. Ambang Batas Deteksi Fisika Bara Gambut</span>
+          <form onSubmit={handleSaveSettings} className="space-y-6">
+            {/* Ambang Fisika Bara Gambut */}
+            <div className="p-5 rounded-xl bg-[#181414] border border-[#2D2424] space-y-4">
+              <h3 className="text-sm font-semibold text-white uppercase tracking-wider font-mono flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-[#EA580C]" />
+                1. Ambang Batas Deteksi Fisika Bara
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <label className="text-[11px] text-slate-600 font-semibold block mb-1">
-                    Ambang Bara Kritis Kedalaman 50 cm (°C)
+                  <label className="text-[10px] text-neutral-400 uppercase font-mono block mb-1">
+                    Ambang Suhu Inti Bara 50 cm (°C)
                   </label>
                   <input
                     type="number"
                     value={tempThreshold}
                     onChange={(e) => setTempThreshold(Number(e.target.value))}
-                    className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono focus:outline-none focus:border-emerald-700"
+                    className="w-full bg-[#121010] border border-[#2D2424] rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-[#EA580C]"
                   />
+                  <p className="text-[10px] text-neutral-500 mt-1">
+                    Standar pirolisis gambut: 60°C memicu status Waspada/Bara Aktif.
+                  </p>
                 </div>
 
                 <div>
-                  <label className="text-[11px] text-slate-600 font-semibold block mb-1">
+                  <label className="text-[10px] text-neutral-400 uppercase font-mono block mb-1">
                     Laju Kenaikan Suhu (°C / jam)
                   </label>
                   <input
@@ -92,56 +113,70 @@ export default function SettingsPage() {
                     step="0.1"
                     value={rateThreshold}
                     onChange={(e) => setRateThreshold(Number(e.target.value))}
-                    className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono focus:outline-none focus:border-emerald-700"
+                    className="w-full bg-[#121010] border border-[#2D2424] rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-[#EA580C]"
                   />
+                  <p className="text-[10px] text-neutral-500 mt-1">
+                    Regresi linear: laju di atas 5.0°C/jam menandakan pembakaran aktif.
+                  </p>
                 </div>
 
                 <div>
-                  <label className="text-[11px] text-slate-600 font-semibold block mb-1">
-                    Ambang Bahaya Smouldering Gas CO (ppm)
+                  <label className="text-[10px] text-neutral-400 uppercase font-mono block mb-1">
+                    Ambang Batas Gas Karbon Monoksida (ppm)
                   </label>
                   <input
                     type="number"
                     value={coThreshold}
                     onChange={(e) => setCoThreshold(Number(e.target.value))}
-                    className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono focus:outline-none focus:border-emerald-700"
+                    className="w-full bg-[#121010] border border-[#2D2424] rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-[#EA580C]"
                   />
+                  <p className="text-[10px] text-neutral-500 mt-1">
+                    Sensor MQ-7: pembaraan anaerobik menghasilkan konsentrasi CO &gt; 50 ppm.
+                  </p>
                 </div>
 
                 <div>
-                  <label className="text-[11px] text-slate-600 font-semibold block mb-1">
-                    Durasi Protokol Verifikasi Lahan Aman (Jam)
+                  <label className="text-[10px] text-neutral-400 uppercase font-mono block mb-1">
+                    Syarat Hari Stabil Kawasan Aman (Hari)
                   </label>
                   <input
                     type="number"
-                    value={safeHoursReq}
-                    onChange={(e) => setSafeHoursReq(Number(e.target.value))}
-                    className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono focus:outline-none focus:border-emerald-700"
+                    value={safeDaysReq}
+                    onChange={(e) => setSafeDaysReq(Number(e.target.value))}
+                    className="w-full bg-[#121010] border border-[#2D2424] rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-[#EA580C]"
                   />
+                  <p className="text-[10px] text-neutral-500 mt-1">
+                    Sesuai Permen LHK No. P.32/2016: wajib 3 hari berturut-turut stabil.
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-              <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                <Phone className="w-4 h-4 text-emerald-700" />
-                <span>2. Penerima Alert WhatsApp Otomatis (Fonnte API)</span>
+            {/* Nomor Penerima Notifikasi WhatsApp */}
+            <div className="p-5 rounded-xl bg-[#181414] border border-[#2D2424] space-y-4">
+              <h3 className="text-sm font-semibold text-white uppercase tracking-wider font-mono flex items-center gap-2">
+                <Phone className="w-4 h-4 text-emerald-400" />
+                2. Penerima Alert WhatsApp Otomatis (Fonnte API)
               </h3>
 
-              <div className="text-xs space-y-1.5">
-                <label className="text-[11px] text-slate-600 font-semibold block">
-                  Daftar Nomor WhatsApp Regu Manggala Agni &amp; MPA
+              <div className="text-xs space-y-2">
+                <label className="text-[10px] text-neutral-400 uppercase font-mono block">
+                  Daftar Nomor WhatsApp Satgas (Pisahkan dengan koma)
                 </label>
                 <input
                   type="text"
                   value={phoneRecipients}
                   onChange={(e) => setPhoneRecipients(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono focus:outline-none focus:border-emerald-700"
+                  className="w-full bg-[#121010] border border-[#2D2424] rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-[#EA580C]"
                 />
+                <p className="text-[10px] text-neutral-500">
+                  Gunakan format internasional tanpa tanda plus (misal: 6281234567890).
+                </p>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 space-y-2 text-xs">
-                <label className="text-[11px] text-slate-600 font-semibold block">
+              {/* Uji Kirim Langsung */}
+              <div className="pt-3 border-t border-[#261E1E] space-y-2 text-xs">
+                <label className="text-[10px] text-neutral-400 uppercase font-mono block">
                   Uji Kirim Pesan Alert Lapangan
                 </label>
                 <div className="flex gap-2">
@@ -150,33 +185,34 @@ export default function SettingsPage() {
                     placeholder="Ketik nomor uji (contoh: 62812xxxxxxxx)"
                     value={testNumber}
                     onChange={(e) => setTestNumber(e.target.value)}
-                    className="flex-1 bg-[#F8FAFC] border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono text-xs focus:outline-none focus:border-emerald-700"
+                    className="flex-1 bg-[#121010] border border-[#2D2424] rounded-lg px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-[#EA580C]"
                   />
                   <button
                     type="button"
                     onClick={handleSendTestWa}
                     disabled={testing}
-                    className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shrink-0"
+                    className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors shrink-0"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>Kirim Uji</span>
                   </button>
                 </div>
                 {testSuccess && (
-                  <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-mono">
+                  <div className="p-2 rounded bg-[#121010] text-[11px] text-emerald-300 font-mono">
                     {testSuccess}
                   </div>
                 )}
               </div>
             </div>
 
+            {/* Simpan Perubahan */}
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#0D2B1D] hover:bg-[#143d29] text-white text-xs font-bold shadow-xs transition-colors"
+                className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#EA580C] hover:bg-[#F97316] text-white text-xs font-bold shadow-md transition-all hover:scale-105"
               >
-                <Save className="w-4 h-4 text-emerald-300" />
-                <span>Simpan Konfigurasi</span>
+                <Save className="w-4 h-4" />
+                <span>Simpan Seluruh Konfigurasi</span>
               </button>
             </div>
           </form>
@@ -185,3 +221,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+
