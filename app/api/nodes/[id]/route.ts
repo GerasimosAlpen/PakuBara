@@ -21,7 +21,13 @@ export async function GET(
       (a) => a.node_id === node.id && ["open", "acknowledged", "in_progress"].includes(a.status)
     );
 
+    const area = mockStore.areas.find((a) => a.id === node.area_id) || {
+      id: node.area_id,
+      name: "Wilayah Pemantauan Gambut",
+    };
+
     const isPK04 = node.id === "PK-04";
+    const isPKK03 = node.id === "PK-K03";
     const prediction = isPK04
       ? {
           rate_c_per_h: { t20: 2.1, t50: 6.0, t100: 0.3 },
@@ -31,13 +37,22 @@ export async function GET(
           eta_surface_h: 11.9,
           confidence: "high",
         }
+      : isPKK03
+      ? {
+          rate_c_per_h: { t20: 2.4, t50: 6.8, t100: 0.4 },
+          ember_depth_cm: 50,
+          direction_deg: 135,
+          speed_cm_per_h: 4.5,
+          eta_surface_h: 9.2,
+          confidence: "high",
+        }
       : null;
 
-    return NextResponse.json({
+    const nodePayload = {
       id: node.id,
       type: node.type,
       status: node.status,
-      area: { id: node.area_id, name: "Blok B Pulau Padang (Sektor B-04)" },
+      area: { id: area.id, name: area.name },
       location: { lat: node.lat, lon: node.lon },
       last_seen: node.last_seen,
       last_reading: node.last_reading,
@@ -48,6 +63,12 @@ export async function GET(
       rssi: node.rssi,
       prediction,
       open_alert_id: openAlert?.id || null,
+    };
+
+    return NextResponse.json({
+      success: true,
+      data: nodePayload,
+      ...nodePayload,
     });
   } catch (error) {
     console.error("GET /api/nodes/[id] error:", error);

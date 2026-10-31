@@ -24,6 +24,7 @@ import {
 export interface MapNode {
   id: string;
   type: "probe" | "gas";
+  area_id?: string;
   lat: number;
   lon: number;
   status: "normal" | "watch" | "warning" | "active" | "offline";
@@ -49,6 +50,8 @@ interface CommandMapProps {
   hotspots?: MapHotspot[];
   selectedNodeId?: string | null;
   onSelectNode?: (node: MapNode) => void;
+  activeAreaId?: string;
+  onSelectArea?: (areaId: string) => void;
   spreadVector?: {
     origin: [number, number];
     directionDeg: number;
@@ -158,12 +161,9 @@ export function CommandMap({
   hotspots = [],
   selectedNodeId,
   onSelectNode,
-  spreadVector = {
-    origin: [102.6789, -1.2345], // PK-04
-    directionDeg: 45, // Timur Laut
-    distanceMeters: 250,
-    etaHours: 11.9,
-  },
+  activeAreaId = "a0000000-0000-0000-0000-000000000001",
+  onSelectArea,
+  spreadVector,
   wind = { speedKmh: 14.2, directionDeg: 220 },
 }: CommandMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -233,7 +233,7 @@ export function CommandMap({
     const m = map.current;
     if (!m) return;
 
-    // 1. Boundary Polygon for Blok B
+    // 1. Boundary Polygons for Monitored Peat Areas (Riau & Kalimantan KHG)
     const boundaryGeoJSON: GeoJSON.FeatureCollection = {
       type: "FeatureCollection",
       features: [
@@ -243,15 +243,31 @@ export function CommandMap({
             type: "Polygon",
             coordinates: [
               [
-                [102.668, -1.229],
-                [102.689, -1.229],
-                [102.689, -1.242],
-                [102.668, -1.242],
-                [102.668, -1.229],
+                [102.665, -1.225],
+                [102.695, -1.225],
+                [102.695, -1.245],
+                [102.665, -1.245],
+                [102.665, -1.225],
               ],
             ],
           },
-          properties: { name: "Blok B Hutan Gambut Lindung" },
+          properties: { name: "Blok B Hutan Gambut Lindung (Riau)" },
+        },
+        {
+          type: "Feature",
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [113.880, -2.260],
+                [113.980, -2.260],
+                [113.980, -2.360],
+                [113.880, -2.360],
+                [113.880, -2.260],
+              ],
+            ],
+          },
+          properties: { name: "KHG Kahayan - Sebangau (Kalimantan Tengah)" },
         },
       ],
     };
@@ -265,8 +281,8 @@ export function CommandMap({
         type: "fill",
         source: "area-boundary",
         paint: {
-          "fill-color": "#EA580C",
-          "fill-opacity": 0.04,
+          "fill-color": "#0284C7",
+          "fill-opacity": 0.05,
         },
       });
       m.addLayer({
@@ -274,7 +290,7 @@ export function CommandMap({
         type: "line",
         source: "area-boundary",
         paint: {
-          "line-color": "#EA580C",
+          "line-color": "#38BDF8",
           "line-width": 1.5,
           "line-dasharray": [3, 2],
         },
@@ -529,35 +545,74 @@ export function CommandMap({
     setBasemapKey(keys[nextIdx]);
   };
 
-  const flyToPaku = () => {
-    map.current?.flyTo({
-      center: [102.6789, -1.2345],
-      zoom: 15.2,
-      pitch: 35,
-      duration: 1600,
-    });
+  const flyToPaku = (targetAreaId?: string) => {
+    const aid = targetAreaId || activeAreaId;
+    if (aid === "a0000000-0000-0000-0000-000000000003") {
+      // Focus to Kalimantan KHG Sebangau cluster
+      map.current?.flyTo({
+        center: [113.9315, -2.3045],
+        zoom: 14.8,
+        pitch: 35,
+        duration: 1600,
+      });
+    } else if (aid === "all") {
+      // Overview all clusters
+      map.current?.flyTo({
+        center: [108.5, -1.8],
+        zoom: 6.0,
+        pitch: 20,
+        bearing: 0,
+        duration: 1600,
+      });
+    } else {
+      // Focus to Riau Pulau Padang cluster
+      map.current?.flyTo({
+        center: [102.6789, -1.2345],
+        zoom: 15.2,
+        pitch: 35,
+        duration: 1600,
+      });
+    }
   };
 
   const flyToActiveEmber = () => {
-    map.current?.flyTo({
-      center: [102.6789, -1.2345],
-      zoom: 16.5,
-      pitch: 52,
-      bearing: 45,
-      duration: 1600,
-    });
+    if (activeAreaId === "a0000000-0000-0000-0000-000000000003") {
+      // Jump to active ember in Kalimantan (PK-K03 89.6°C)
+      map.current?.flyTo({
+        center: [113.9315, -2.3045],
+        zoom: 16.5,
+        pitch: 52,
+        bearing: 135,
+        duration: 1600,
+      });
+    } else {
+      // Jump to active ember in Riau (PK-04 87.3°C)
+      map.current?.flyTo({
+        center: [102.6789, -1.2345],
+        zoom: 16.5,
+        pitch: 52,
+        bearing: 45,
+        duration: 1600,
+      });
+    }
   };
 
   const resetNorth = () => {
     map.current?.resetNorthPitch({ duration: 800 });
   };
 
+  // Sync flyTo when activeAreaId prop changes
+  useEffect(() => {
+    if (!map.current || !map.current.isStyleLoaded()) return;
+    flyToPaku(activeAreaId);
+  }, [activeAreaId]);
+
   return (
     <div className="relative w-full h-full min-h-[500px] overflow-hidden rounded-xl border border-slate-800 bg-[#0B0F19]">
       {/* MapLibre WebGL Canvas Container */}
       <div ref={mapContainer} className="w-full h-full min-h-[500px]" />
 
-      {/* Floating Icon Toolbar (Top Left) - Matching Lampiran 2 */}
+      {/* Floating Icon Toolbar (Top Left) */}
       <div className="absolute top-3 left-3 z-10 flex flex-col items-start gap-2">
         <div className="flex items-center gap-1 bg-[#111622]/95 backdrop-blur-md p-1.5 rounded-xl border border-slate-800/90 shadow-2xl">
           <button
@@ -579,11 +634,11 @@ export function CommandMap({
           </button>
 
           <button
-            onClick={flyToPaku}
-            className="p-1.5 rounded-lg bg-orange-600/20 hover:bg-orange-600 text-orange-400 hover:text-white border border-orange-500/40 transition-colors"
-            title="FOKUS KE PAKU SENSOR (Blok B Pulau Padang)"
+            onClick={() => flyToPaku()}
+            className="p-1.5 rounded-lg bg-sky-600/20 hover:bg-sky-600 text-sky-400 hover:text-white border border-sky-500/40 transition-colors"
+            title="Fokus ke Paku Sensor Wilayah Aktif"
           >
-            <LocateFixed className="w-4 h-4 text-orange-400 hover:text-white" />
+            <LocateFixed className="w-4 h-4 text-sky-400 hover:text-white" />
           </button>
 
           <button
@@ -641,7 +696,7 @@ export function CommandMap({
           <button
             onClick={flyToActiveEmber}
             className="p-1.5 rounded-lg hover:bg-red-900/60 text-red-400 hover:text-red-300 transition-colors"
-            title="Lompat ke Titik Bara Aktif (PK-04 87.3°C)"
+            title="Lompat ke Titik Bara Aktif"
           >
             <Bell className="w-4 h-4 animate-bounce" />
           </button>
@@ -652,6 +707,49 @@ export function CommandMap({
             title="Reset Arah Utara (North Up)"
           >
             <Compass className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Quick Area Jump Buttons (Pills) */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <button
+            onClick={() => {
+              onSelectArea?.("a0000000-0000-0000-0000-000000000001");
+              flyToPaku("a0000000-0000-0000-0000-000000000001");
+            }}
+            className={`px-2.5 py-1 text-[11px] font-mono rounded-lg backdrop-blur-md border transition-colors ${
+              activeAreaId === "a0000000-0000-0000-0000-000000000001"
+                ? "bg-slate-800 text-sky-300 border-sky-500/60 font-semibold shadow-md shadow-sky-950/40"
+                : "bg-[#111622]/90 text-slate-300 border-slate-800/90 hover:bg-slate-800 hover:text-white"
+            }`}
+          >
+            Riau (PK-01..08)
+          </button>
+          <button
+            onClick={() => {
+              onSelectArea?.("a0000000-0000-0000-0000-000000000003");
+              flyToPaku("a0000000-0000-0000-0000-000000000003");
+            }}
+            className={`px-2.5 py-1 text-[11px] font-mono rounded-lg backdrop-blur-md border transition-colors ${
+              activeAreaId === "a0000000-0000-0000-0000-000000000003"
+                ? "bg-slate-800 text-amber-300 border-amber-500/60 font-semibold shadow-md shadow-amber-950/40"
+                : "bg-[#111622]/90 text-slate-300 border-slate-800/90 hover:bg-slate-800 hover:text-white"
+            }`}
+          >
+            Kalimantan KHG (PK-K01..K08)
+          </button>
+          <button
+            onClick={() => {
+              onSelectArea?.("all");
+              flyToPaku("all");
+            }}
+            className={`px-2.5 py-1 text-[11px] font-mono rounded-lg backdrop-blur-md border transition-colors ${
+              activeAreaId === "all"
+                ? "bg-slate-800 text-emerald-300 border-emerald-500/60 font-semibold shadow-md shadow-emerald-950/40"
+                : "bg-[#111622]/90 text-slate-300 border-slate-800/90 hover:bg-slate-800 hover:text-white"
+            }`}
+          >
+            Semua Titik
           </button>
         </div>
 
@@ -708,6 +806,5 @@ export function CommandMap({
       </div>
     </div>
   );
-}
 }
 

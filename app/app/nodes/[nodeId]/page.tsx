@@ -114,11 +114,11 @@ function NodeDetailContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#121010] text-[#F3F4F6] flex flex-col">
+      <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col">
         <AppNavbar />
         <div className="flex flex-1">
           <AppSidebar />
-          <div className="flex-1 flex items-center justify-center text-xs font-mono text-neutral-400">
+          <div className="flex-1 flex items-center justify-center text-xs font-mono text-slate-400">
             Memuat telemetri titik {nodeId}...
           </div>
         </div>
@@ -126,31 +126,38 @@ function NodeDetailContent() {
     );
   }
 
-  const t20 = node?.last_reading.t20 ?? 30.0;
-  const t50 = node?.last_reading.t50 ?? 87.3;
-  const t100 = node?.last_reading.t100 ?? 42.0;
+  const isKalimantan = nodeId.includes("-K") || nodeId.startsWith("PK-K") || nodeId.startsWith("GS-K");
+  const isEmber = nodeId === "PK-04" || nodeId === "PK-K03";
+  const t20 = node?.last_reading.t20 ?? (isEmber ? (isKalimantan ? 38.2 : 36.4) : 29.5);
+  const t50 = node?.last_reading.t50 ?? (isEmber ? (isKalimantan ? 89.6 : 87.3) : 31.0);
+  const t100 = node?.last_reading.t100 ?? (isEmber ? (isKalimantan ? 43.1 : 42.0) : 30.2);
   const battVolts = ((node?.batt_mv ?? 3860) / 1000).toFixed(2);
 
+  const directionName = isKalimantan ? "Tenggara (135°)" : "Timur Laut (45°)";
+  const etaHours = isKalimantan ? 9.2 : 11.9;
+  const targetNeighbor = isKalimantan ? "PK-K04 (Sebangau)" : "PK-05 (Pulau Padang)";
+  const waterRec = isKalimantan ? 800 : 600;
+
   return (
-    <div className="min-h-screen bg-[#121010] text-[#F3F4F6] flex flex-col select-none">
+    <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col select-none">
       <AppNavbar />
 
       <div className="flex flex-1 overflow-hidden">
         <AppSidebar />
 
-        <main className="flex-1 overflow-y-auto p-6 space-y-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           {/* Back button & Node Title Header */}
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2D2424] pb-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
             <div className="flex items-center gap-3">
               <Link
                 href="/app"
-                className="p-2 rounded-lg bg-[#181414] hover:bg-[#261E1E] border border-[#2D2424] text-neutral-400 hover:text-white transition-colors"
+                className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
               </Link>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold font-mono text-white">
+                  <h1 className="text-xl font-bold font-mono text-slate-100">
                     TITIK SENSOR {node?.id}
                   </h1>
                   <span
@@ -165,27 +172,35 @@ function NodeDetailContent() {
                     {node?.status === "active" ? "Bara Aktif" : node?.status}
                   </span>
                 </div>
-                <div className="text-xs text-neutral-400">
-                  {node?.type === "probe" ? "Paku Termal Stainless Steel (3 Kedalaman)" : "Tiang Gas CO Terbuka"}
+                <div className="text-xs text-slate-400">
+                  {node?.type === "probe"
+                    ? "Paku Termal Stainless Steel (3 Kedalaman)"
+                    : "Tiang Gas CO Gambut (LoRa)"}
+                  {" • "}
+                  <span className="text-slate-300 font-medium">
+                    {isKalimantan
+                      ? "KHG Kahayan - Sebangau (Kalteng)"
+                      : "Blok B Pulau Padang (Riau)"}
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Hardware Metrics Chips */}
-            <div className="flex items-center gap-3 text-xs font-mono">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#181414] border border-[#2D2424]">
+            <div className="flex items-center gap-2.5 sm:gap-3 text-xs font-mono">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800">
                 <Battery className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-neutral-300">{battVolts} V</span>
+                <span className="text-slate-200">{battVolts} V</span>
               </div>
 
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#181414] border border-[#2D2424]">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800">
                 <Wifi className="w-3.5 h-3.5 text-sky-400" />
-                <span className="text-neutral-300">{node?.rssi ?? -84} dBm</span>
+                <span className="text-slate-200">{node?.rssi ?? -84} dBm</span>
               </div>
 
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#181414] border border-[#2D2424]">
-                <Clock className="w-3.5 h-3.5 text-neutral-400" />
-                <span className="text-neutral-300">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800">
+                <Clock className="w-3.5 h-3.5 text-slate-400" />
+                <span className="text-slate-200">
                   {new Date(node?.last_seen || Date.now()).toLocaleTimeString("id-ID")}
                 </span>
               </div>
@@ -197,7 +212,7 @@ function NodeDetailContent() {
             <NodeTimeSeriesChart
               data={readings}
               title={`Deret Waktu 24 Jam Titik ${node?.id}`}
-              showCo={node?.type === "gas" || node?.id === "PK-04"}
+              showCo={node?.type === "gas" || isEmber}
             />
           </div>
 
@@ -217,65 +232,65 @@ function NodeDetailContent() {
 
             {/* Physical Regression & Spread Prediction Card */}
             <div className="space-y-4">
-              <div className="p-5 rounded-xl bg-[#181414] border border-[#2D2424] space-y-4">
-                <h3 className="text-xs font-semibold text-white uppercase tracking-wider font-mono flex items-center gap-2">
-                  <Compass className="w-4 h-4 text-[#EA580C]" />
+              <div className="p-5 rounded-xl bg-slate-900 border border-slate-800 space-y-4">
+                <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono flex items-center gap-2">
+                  <Compass className="w-4 h-4 text-sky-400" />
                   Model Prediksi Arah Rambat & Waktu Tiba (ETA)
                 </h3>
 
                 <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="p-3 rounded-lg bg-[#121010] border border-[#261E1E]">
-                    <span className="text-[10px] text-neutral-500 uppercase font-mono block">
+                  <div className="p-3 rounded-lg bg-slate-950 border border-slate-800/80">
+                    <span className="text-[10px] text-slate-400 uppercase font-mono block">
                       Laju Pemanasan (r_z)
                     </span>
                     <span className="text-lg font-black font-mono text-amber-400">
-                      +{node?.rate_c_per_hour ?? 6.0}°C / jam
+                      +{node?.rate_c_per_hour ?? (isKalimantan ? 6.8 : 6.0)}°C / jam
                     </span>
-                    <span className="text-[10px] text-neutral-400 block mt-0.5">
+                    <span className="text-[10px] text-slate-500 block mt-0.5">
                       R² = 0.94 (Korelasi Sangat Kuat)
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-[#121010] border border-[#261E1E]">
-                    <span className="text-[10px] text-neutral-500 uppercase font-mono block">
+                  <div className="p-3 rounded-lg bg-slate-950 border border-slate-800/80">
+                    <span className="text-[10px] text-slate-400 uppercase font-mono block">
                       Estimasi Waktu Tiba (ETA)
                     </span>
                     <span className="text-lg font-black font-mono text-red-400">
-                      {node?.spread_prediction?.eta_hours ?? 11.9} Jam
+                      {etaHours} Jam
                     </span>
-                    <span className="text-[10px] text-neutral-400 block mt-0.5">
-                      Menuju Node Tetangga PK-05
+                    <span className="text-[10px] text-slate-500 block mt-0.5">
+                      Menuju Node {targetNeighbor}
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-[#121010] border border-[#261E1E]">
-                    <span className="text-[10px] text-neutral-500 uppercase font-mono block">
+                  <div className="p-3 rounded-lg bg-slate-950 border border-slate-800/80">
+                    <span className="text-[10px] text-slate-400 uppercase font-mono block">
                       Arah Rambatan (Theta)
                     </span>
-                    <span className="text-base font-bold font-mono text-white mt-1 block">
-                      {node?.spread_prediction?.direction_name ?? "Timur Laut (45°)"}
+                    <span className="text-base font-bold font-mono text-slate-100 mt-1 block">
+                      {directionName}
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-[#121010] border border-[#261E1E]">
-                    <span className="text-[10px] text-neutral-500 uppercase font-mono block">
+                  <div className="p-3 rounded-lg bg-slate-950 border border-slate-800/80">
+                    <span className="text-[10px] text-slate-400 uppercase font-mono block">
                       Rekomendasi Air Gambut
                     </span>
                     <span className="text-base font-bold font-mono text-sky-400 mt-1 block">
-                      {node?.spread_prediction?.recommended_water_liters ?? 600} Liter
+                      {waterRec} Liter
                     </span>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-orange-950/20 border border-orange-800/30 text-[11px] text-orange-200 leading-relaxed">
-                  <strong>Instruksi Tim Pemadam:</strong> Tancapkan pipa nozzle suntik air pada kedalaman 50 cm
-                  dengan radius 15 meter ke arah Timur Laut untuk memutus suplai oksigen pirolisis gambut.
+                <div className="p-3 rounded-lg bg-slate-950 border border-slate-800/80 text-[11px] text-slate-300 leading-relaxed">
+                  <strong className="text-sky-300">Instruksi Tim Pemadam:</strong> Tancapkan pipa nozzle suntik air pada kedalaman 50 cm
+                  dengan radius 15 meter ke arah {directionName} untuk memutus suplai oksigen pirolisis gambut.
                 </div>
               </div>
 
               {/* Form Catat Tindakan Pemadaman Langsung */}
-              <div className="p-5 rounded-xl bg-[#181414] border border-[#2D2424] space-y-3">
-                <h3 className="text-xs font-semibold text-white uppercase tracking-wider font-mono flex items-center gap-2">
+              <div className="p-5 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+                <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono flex items-center gap-2">
                   <Droplets className="w-4 h-4 text-sky-400" />
                   Catat Tindakan Lapangan pada Titik Ini
                 </h3>
@@ -288,18 +303,18 @@ function NodeDetailContent() {
                 ) : (
                   <form onSubmit={handleRecordAction} className="space-y-3 text-xs">
                     <div>
-                      <label className="text-[10px] text-neutral-400 uppercase font-mono block mb-1">
+                      <label className="text-[10px] text-slate-400 uppercase font-mono block mb-1">
                         Volume Injeksi Air (Liter)
                       </label>
                       <input
                         type="number"
                         value={waterLiters}
                         onChange={(e) => setWaterLiters(Number(e.target.value))}
-                        className="w-full bg-[#121010] border border-[#2D2424] rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-[#EA580C]"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-sky-500"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-neutral-400 uppercase font-mono block mb-1">
+                      <label className="text-[10px] text-slate-400 uppercase font-mono block mb-1">
                         Catatan Tindakan
                       </label>
                       <input
@@ -307,12 +322,12 @@ function NodeDetailContent() {
                         placeholder="Contoh: Injeksi pipa nozzle 600L selesai, suhu turun..."
                         value={note}
                         onChange={(e) => setNote(e.target.value)}
-                        className="w-full bg-[#121010] border border-[#2D2424] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#EA580C]"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-sky-500"
                       />
                     </div>
                     <button
                       type="submit"
-                      className="w-full py-2 rounded-lg bg-[#EA580C] hover:bg-[#F97316] text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
+                      className="w-full py-2.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
                     >
                       <Send className="w-3.5 h-3.5" />
                       <span>Simpan Tindakan</span>
@@ -332,7 +347,7 @@ export default function NodeDetailPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#121010] flex items-center justify-center text-xs font-mono text-neutral-400">
+        <div className="min-h-screen bg-[#0B0F19] flex items-center justify-center text-xs font-mono text-slate-400">
           Memuat telemetri titik sensor...
         </div>
       }

@@ -22,6 +22,7 @@ export default function AppCommandPage() {
   const [nodes, setNodes] = useState<MapNode[]>([]);
   const [hotspots, setHotspots] = useState<MapHotspot[]>([]);
   const [selectedNode, setSelectedNode] = useState<MapNode | null>(null);
+  const [selectedAreaId, setSelectedAreaId] = useState<string>("a0000000-0000-0000-0000-000000000001");
   const [loading, setLoading] = useState<boolean>(true);
 
   // Fetch nodes & hotspots
@@ -42,8 +43,9 @@ export default function AppCommandPage() {
           : [];
         setNodes(nodesList);
 
-        const pk04 = nodesList.find((n: MapNode) => n.id === "PK-04");
-        if (pk04) setSelectedNode(pk04);
+        // Select initial focus node
+        const initialNode = nodesList.find((n: MapNode) => n.id === "PK-04") || nodesList[0];
+        if (initialNode) setSelectedNode(initialNode);
 
         const hotspotsList = Array.isArray(hotspotsData?.data)
           ? hotspotsData.data
@@ -68,12 +70,52 @@ export default function AppCommandPage() {
     loadData();
   }, []);
 
-  const activeNodesCount = nodes.filter((n) => n.status === "active").length;
-  const warningNodesCount = nodes.filter((n) => n.status === "warning" || n.status === "watch").length;
+  const handleSelectArea = (areaId: string) => {
+    setSelectedAreaId(areaId);
+    if (areaId === "a0000000-0000-0000-0000-000000000003") {
+      const pkk03 = nodes.find((n) => n.id === "PK-K03");
+      if (pkk03) setSelectedNode(pkk03);
+    } else if (areaId === "a0000000-0000-0000-0000-000000000001") {
+      const pk04 = nodes.find((n) => n.id === "PK-04");
+      if (pk04) setSelectedNode(pk04);
+    }
+  };
+
+  const isKalimantan = selectedAreaId === "a0000000-0000-0000-0000-000000000003";
+  const isAll = selectedAreaId === "all";
+
+  const activeAreaName = isKalimantan
+    ? "KHG Kahayan - Sebangau (Kalteng)"
+    : isAll
+    ? "Semua Wilayah Operasi (Lintas KHG)"
+    : "Blok B Pulau Padang (Riau)";
+
+  const displayedNodes = isAll ? nodes : nodes.filter((n) => n.area_id === selectedAreaId);
+  const probeCount = displayedNodes.filter((n) => n.type === "probe").length;
+  const gasCount = displayedNodes.filter((n) => n.type === "gas").length;
+  const activeNodesCount = displayedNodes.filter((n) => n.status === "active").length;
+
+  const spreadVector = isKalimantan
+    ? {
+        origin: [113.9315, -2.3045] as [number, number],
+        directionDeg: 135,
+        distanceMeters: 240,
+        etaHours: 9.2,
+      }
+    : {
+        origin: [102.6789, -1.2345] as [number, number],
+        directionDeg: 45,
+        distanceMeters: 220,
+        etaHours: 11.9,
+      };
 
   return (
     <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col select-none">
-      <AppNavbar />
+      <AppNavbar
+        activeAreaName={activeAreaName}
+        activeAreaId={selectedAreaId}
+        onSelectArea={handleSelectArea}
+      />
 
       <div className="flex flex-1 overflow-hidden">
         <AppSidebar />
@@ -87,8 +129,12 @@ export default function AppCommandPage() {
                 <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
                   Titik Pantau LoRa
                 </span>
-                <span className="text-lg sm:text-xl font-mono font-bold text-slate-100">{nodes.length || 10}</span>
-                <span className="text-[10px] text-emerald-400 block mt-0.5 font-medium">8 Paku + 2 Tiang Gas</span>
+                <span className="text-lg sm:text-xl font-mono font-bold text-slate-100">
+                  {displayedNodes.length || (isAll ? 20 : 10)}
+                </span>
+                <span className="text-[10px] text-emerald-400 block mt-0.5 font-medium">
+                  {probeCount || (isAll ? 16 : 8)} Paku + {gasCount || (isAll ? 4 : 2)} Tiang Gas
+                </span>
               </div>
               <div className="p-2 sm:p-2.5 rounded-lg bg-slate-800 border border-slate-700/70 text-emerald-400">
                 <Radio className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -101,9 +147,15 @@ export default function AppCommandPage() {
                   Bara Aktif (≥60°C)
                 </span>
                 <span className="text-lg sm:text-xl font-mono font-bold text-red-400">
-                  {activeNodesCount || 1} Titik
+                  {activeNodesCount || (isAll ? 2 : 1)} Titik
                 </span>
-                <span className="text-[10px] text-red-300 block mt-0.5 font-medium">PK-04 (87.3°C, 50cm)</span>
+                <span className="text-[10px] text-red-300 block mt-0.5 font-medium truncate max-w-[150px]">
+                  {isKalimantan
+                    ? "PK-K03 (89.6°C, 50cm)"
+                    : isAll
+                    ? "PK-04 & PK-K03 Aktif"
+                    : "PK-04 (87.3°C, 50cm)"}
+                </span>
               </div>
               <div className="p-2 sm:p-2.5 rounded-lg bg-red-950/60 border border-red-800/60 text-red-400">
                 <Flame className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -115,8 +167,12 @@ export default function AppCommandPage() {
                 <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
                   Alert Terbuka
                 </span>
-                <span className="text-lg sm:text-xl font-mono font-bold text-amber-400">1 Insiden</span>
-                <span className="text-[10px] text-amber-300 block mt-0.5 font-medium">Menunggu respon regu</span>
+                <span className="text-lg sm:text-xl font-mono font-bold text-amber-400">
+                  {activeNodesCount || (isAll ? 2 : 1)} Insiden
+                </span>
+                <span className="text-[10px] text-amber-300 block mt-0.5 font-medium">
+                  {isKalimantan ? "Sebangau Siaga Darurat" : "Menunggu respon regu"}
+                </span>
               </div>
               <div className="p-2 sm:p-2.5 rounded-lg bg-amber-950/60 border border-amber-800/60 text-amber-400">
                 <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -128,8 +184,12 @@ export default function AppCommandPage() {
                 <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
                   Kawasan Stabil
                 </span>
-                <span className="text-lg sm:text-xl font-mono font-bold text-sky-400">1 dari 3 Hari</span>
-                <span className="text-[10px] text-slate-400 block mt-0.5">Permen LHK P.32/2016</span>
+                <span className="text-lg sm:text-xl font-mono font-bold text-sky-400">
+                  {isKalimantan ? "0 dari 3 Hari" : "1 dari 3 Hari"}
+                </span>
+                <span className="text-[10px] text-slate-400 block mt-0.5">
+                  Permen LHK P.32/2016
+                </span>
               </div>
               <div className="p-2 sm:p-2.5 rounded-lg bg-slate-800 border border-slate-700/70 text-sky-400">
                 <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -144,13 +204,10 @@ export default function AppCommandPage() {
               hotspots={hotspots}
               selectedNodeId={selectedNode?.id}
               onSelectNode={(node) => setSelectedNode(node)}
-              spreadVector={{
-                origin: [102.6789, -1.2345],
-                directionDeg: 45,
-                distanceMeters: 220,
-                etaHours: 11.9,
-              }}
-              wind={{ speedKmh: 14.2, directionDeg: 220 }}
+              activeAreaId={selectedAreaId}
+              onSelectArea={handleSelectArea}
+              spreadVector={spreadVector}
+              wind={{ speedKmh: 14.2, directionDeg: isKalimantan ? 310 : 220 }}
             />
 
             {/* Timeline Scrub Bar (Docked at Map Bottom) */}
@@ -229,6 +286,17 @@ export default function AppCommandPage() {
                     </div>
                     <div>Arah: 45° (Timur Laut) | ETA: 11.9 jam ke PK-05</div>
                     <div>Rekomendasi: Injeksi pipa air 600L pada kedalaman 50cm</div>
+                  </div>
+                )}
+
+                {selectedNode.id === "PK-K03" && (
+                  <div className="p-2.5 rounded-lg bg-red-950/40 border border-red-800/50 text-[11px] text-red-200 space-y-1">
+                    <div className="font-bold flex items-center gap-1.5 text-red-300">
+                      <Flame className="w-3.5 h-3.5 text-red-400" />
+                      <span>Prediksi Rambat Bara Aktif (Sebangau)</span>
+                    </div>
+                    <div>Arah: 135° (Tenggara) | ETA: 9.2 jam ke koridor PK-K04</div>
+                    <div>Rekomendasi: Injeksi pipa air 800L pada kedalaman 50cm</div>
                   </div>
                 )}
 
