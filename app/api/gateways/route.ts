@@ -5,9 +5,9 @@ import { registerGatewaySchema } from "@/lib/validators/schemas";
 import crypto from "crypto";
 
 export async function GET(req: NextRequest) {
-  try {
-    const areaId = req.nextUrl.searchParams.get("area_id");
+  const areaId = req.nextUrl.searchParams.get("area_id");
 
+  try {
     if (prisma) {
       try {
         const gateways = await prisma.gateway.findMany({
@@ -28,6 +28,9 @@ export async function GET(req: NextRequest) {
     }
     return NextResponse.json({ success: true, data: list });
   } catch (error) {
+    if ((error as any)?.digest?.startsWith("NEXT_")) {
+      throw error;
+    }
     return NextResponse.json(
       { error: "Internal Server Error", message: String(error) },
       { status: 500 }
