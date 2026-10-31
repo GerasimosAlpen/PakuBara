@@ -1,0 +1,301 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum NodeType {
+  probe
+  gas
+
+  @@map("node_type")
+}
+
+enum NodeStatus {
+  normal
+  watch
+  warning
+  active
+  offline
+
+  @@map("node_status")
+}
+
+enum AlertStatus {
+  open
+  acknowledged
+  in_progress
+  resolved
+  false_alarm
+
+  @@map("alert_status")
+}
+
+enum UserRole {
+  admin
+  coordinator
+  responder
+  viewer
+
+  @@map("user_role")
+}
+
+model Organization {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  isDemo    Boolean  @default(false) @map("is_demo")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  profiles   Profile[]
+  areas      Area[]
+  gateways   Gateway[]
+  nodes      Node[]
+  alerts     Alert[]
+  actions    Action[]
+  thresholds Threshold[]
+  riskCells  RiskCell[]
+
+  @@map("organizations")
+}
+
+model Profile {
+  userId   String   @id @map("user_id") @db.Uuid
+  orgId    String   @map("org_id") @db.Uuid
+  fullName String?  @map("full_name")
+  role     UserRole @default(viewer)
+  whatsapp String? // format 62xxxxxxxxxx
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model Area {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orgId              String    @map("org_id") @db.Uuid
+  name               String
+  slug               String?   @unique
+  boundary           Unsupported("geography(MultiPolygon, 4326)")
+  stableDaysRequired Int       @default(3) @map("stable_days_required")
+  status             String    @default("monitoring") // monitoring | safe | closed
+  safeSince          DateTime? @map("safe_since") @db.Timestamptz
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  gateways     Gateway[]
+  nodes        Node[]
+  alerts       Alert[]
+  thresholds   Threshold[]
+  weathers     Weather[]
+
+  @@map("areas")
+}
+
+model Gateway {
+  id         String    @id // contoh: 'GW-01'
+  orgId      String    @map("org_id") @db.Uuid
+  areaId     String?   @map("area_id") @db.Uuid
+  apiKeyHash String    @map("api_key_hash") // SHA-256
+  lastSeen   DateTime? @map("last_seen") @db.Timestamptz
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  area         Area?        @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  nodes        Node[]
+
+  @@map("gateways")
+}
+
+model Node {
+  id          String     @id // contoh: 'PK-04', 'GS-01'
+  shortId     Int        @map("short_id")
+  orgId       String     @map("org_id") @db.Uuid
+  areaId      String?    @map("area_id") @db.Uuid
+  gatewayId   String?    @map("gateway_id")
+  type        NodeType
+  location    Unsupported("geography(Point, 4326)")
+  installedAt DateTime   @default(now()) @map("installed_at") @db.Timestamptz
+  active      Boolean    @default(true)
+  status      NodeStatus @default(normal)
+  lastSeen    DateTime?  @map("last_seen") @db.Timestamptz
+  lastReading Json?      @map("last_reading")
+  battMv      Int?       @map("batt_mv")
+  rssi        Int?
+
+  organization Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  area         Area?           @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  gateway      Gateway?        @relation(fields: [gatewayId], references: [id], onDelete: SetNull)
+  readings     Reading[]
+  predictions  Prediction[]
+  alerts       Alert[]
+  actions      Action[]
+  commands     DeviceCommand[]
+
+  @@unique([orgId, shortId])
+  @@map("nodes")
+}
+
+model Reading {
+  id          BigInt   @id @default(autoincrement())
+  nodeId      String   @map("node_id")
+  seq         Int
+  measuredAt  DateTime @map("measured_at") @db.Timestamptz
+  receivedAt  DateTime @default(now()) @map("received_at") @db.Timestamptz
+  t20         Float?   @db.Real
+  t50         Float?   @db.Real
+  t100        Float?   @db.Real
+  coPpm       Float?   @map("co_ppm") @db.Real
+  battMv      Int?     @map("batt_mv")
+  rssi        Int?
+  snr         Float?   @db.Real
+  flags       Int      @default(0) @db.SmallInt
+  isSimulated Boolean  @default(false) @map("is_simulated")
+
+  node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@index([nodeId, measuredAt(sort: Desc)])
+  @@map("readings")
+}
+
+model Prediction {
+  id           BigInt   @id @default(autoincrement())
+  nodeId       String   @map("node_id")
+  computedAt   DateTime @default(now()) @map("computed_at") @db.Timestamptz
+  rateCPerH    Json     @map("rate_c_per_h") // {"t20":1.2, "t50":6.1, "t100":0.4}
+  emberDepthCm Int?     @map("ember_depth_cm")
+  directionDeg Float?   @map("direction_deg") @db.Real
+  speedCmPerH  Float?   @map("speed_cm_per_h") @db.Real
+  etaSurfaceH  Float?   @map("eta_surface_h") @db.Real
+  confidence   String // low | medium | high
+
+  node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@map("predictions")
+}
+
+model Alert {
+  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orgId          String      @map("org_id") @db.Uuid
+  nodeId         String      @map("node_id")
+  areaId         String?     @map("area_id") @db.Uuid
+  level          String // warning | active
+  signals        Json // {"temp_trend":true, "neighbor":true, "co":false}
+  snapshot       Json // nilai sensor + prediksi saat alert
+  status         AlertStatus @default(open)
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  acknowledgedAt DateTime?   @map("acknowledged_at") @db.Timestamptz
+  acknowledgedBy String?     @map("acknowledged_by") @db.Uuid
+  resolvedAt     DateTime?   @map("resolved_at") @db.Timestamptz
+  resolvedBy     String?     @map("resolved_by") @db.Uuid
+  resolutionNote String?     @map("resolution_note")
+
+  organization  Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  node          Node           @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  area          Area?          @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  notifications Notification[]
+  actions       Action[]
+
+  @@map("alerts")
+}
+
+model Notification {
+  id               BigInt    @id @default(autoincrement())
+  alertId          String    @map("alert_id") @db.Uuid
+  channel          String    @default("whatsapp")
+  target           String
+  status           String // queued | sent | failed
+  providerResponse Json?     @map("provider_response")
+  sentAt           DateTime? @map("sent_at") @db.Timestamptz
+
+  alert Alert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Action {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orgId       String   @map("org_id") @db.Uuid
+  alertId     String?  @map("alert_id") @db.Uuid
+  nodeId      String?  @map("node_id")
+  actor       String?  @db.Uuid
+  kind        String // injection | inspection | relocate | other
+  waterLiters Int?     @map("water_liters")
+  depthCm     Int?     @map("depth_cm")
+  note        String?
+  photoUrl    String?  @map("photo_url")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  alert        Alert?       @relation(fields: [alertId], references: [id], onDelete: SetNull)
+  node         Node?        @relation(fields: [nodeId], references: [id], onDelete: SetNull)
+
+  @@map("actions")
+}
+
+model Threshold {
+  id              String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orgId           String  @map("org_id") @db.Uuid
+  areaId          String? @map("area_id") @db.Uuid
+  tempAbsC        Float   @default(60) @map("temp_abs_c") @db.Real
+  tempRateCPerH   Float   @default(3) @map("temp_rate_c_per_h") @db.Real
+  coPpm           Float   @default(50) @map("co_ppm") @db.Real
+  neighborRadiusM Int     @default(50) @map("neighbor_radius_m")
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  area         Area?        @relation(fields: [areaId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, areaId])
+  @@map("thresholds")
+}
+
+model RiskCell {
+  cellId     String   @id @map("cell_id") // contoh: 'OKI-1km-123-456'
+  orgId      String   @map("org_id") @db.Uuid
+  geom       Unsupported("geography(Polygon, 4326)")
+  score      Float    @db.Real
+  reasons    Json // [{"factor":"canal_density", "share":0.38}, ...]
+  computedOn DateTime @map("computed_on") @db.Date
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@map("risk_cells")
+}
+
+model Hotspot {
+  id         String   @id
+  source     String // VIIRS_NOAA20_NRT, dll
+  location   Unsupported("geography(Point, 4326)")
+  acquiredAt DateTime @map("acquired_at") @db.Timestamptz
+  frp        Float?   @db.Real
+  confidence String?
+
+  @@map("hotspots")
+}
+
+model Weather {
+  areaId      String   @map("area_id") @db.Uuid
+  validAt     DateTime @map("valid_at") @db.Timestamptz
+  windSpeedMs Float?   @map("wind_speed_ms") @db.Real
+  windDirDeg  Float?   @map("wind_dir_deg") @db.Real
+  coUgm3      Float?   @map("co_ugm3") @db.Real
+  pm25Ugm3    Float?   @map("pm2_5_ugm3") @db.Real
+
+  area Area @relation(fields: [areaId], references: [id], onDelete: Cascade)
+
+  @@id([areaId, validAt])
+  @@map("weather")
+}
+
+model DeviceCommand {
+  id          BigInt    @id @default(autoincrement())
+  nodeId      String    @map("node_id")
+  command     Json // {"interval_s":60} atau {"alert_mode":true}
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  deliveredAt DateTime? @map("delivered_at") @db.Timestamptz
+
+  node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@map("device_commands")
+}
+

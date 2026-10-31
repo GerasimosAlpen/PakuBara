@@ -1,0 +1,33 @@
+import { NextRequest, NextResponse } from "next/server";
+import { sendWhatsAppMessage } from "@/lib/integrations/fonnte";
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json().catch(() => ({}));
+    const target = body.target || process.env.FONNTE_DEFAULT_TARGET || "";
+
+    const message = [
+      `🔥 PAKUBARA | UJI COBA NOTIFIKASI POSKO`,
+      `Waktu: ${new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })} WIB`,
+      `Sistem: Gateway LoRa dan Mesin Peringatan PakuBara terhubung dengan baik.`,
+      `Tujuan: Pengujian jalur komunikasi darurat regu lapangan.`,
+    ].join("\n");
+
+    const result = await sendWhatsAppMessage(target, message);
+
+    return NextResponse.json({
+      success: result.success,
+      status: result.status,
+      target,
+      message: result.messageText,
+      provider_response: result.providerResponse,
+    });
+  } catch (error) {
+    console.error("POST /api/alerts/test error:", error);
+    return NextResponse.json(
+      { error: { code: "internal_error", message: "Gagal mengirim pesan uji WhatsApp" } },
+      { status: 500 }
+    );
+  }
+}
+
