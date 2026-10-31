@@ -22,15 +22,15 @@ export function AreaStatusDonut({
   useEffect(() => {
     if (!chartRef.current) return;
     if (!chartInstance.current) {
-      chartInstance.current = echarts.init(chartRef.current);
+      chartInstance.current = echarts.init(chartRef.current, "dark");
     }
 
     const data = [
-      { value: statusBreakdown.normal, name: "Aman", itemStyle: { color: "#16A34A" } },
-      { value: statusBreakdown.watch, name: "CO Meningkat", itemStyle: { color: "#D97706" } },
+      { value: statusBreakdown.normal, name: "Normal", itemStyle: { color: "#10B981" } },
+      { value: statusBreakdown.watch, name: "Waspada", itemStyle: { color: "#F59E0B" } },
       { value: statusBreakdown.warning, name: "Peringatan", itemStyle: { color: "#EA580C" } },
-      { value: statusBreakdown.active, name: "Bara Bawah Tanah", itemStyle: { color: "#DC2626" } },
-      { value: statusBreakdown.offline, name: "Offline", itemStyle: { color: "#94A3B8" } },
+      { value: statusBreakdown.active, name: "Bara Aktif", itemStyle: { color: "#DC2626" } },
+      { value: statusBreakdown.offline, name: "Offline", itemStyle: { color: "#64748B" } },
     ].filter((item) => item.value > 0);
 
     const total = Object.values(statusBreakdown).reduce((a, b) => a + b, 0);
@@ -39,14 +39,14 @@ export function AreaStatusDonut({
       backgroundColor: "transparent",
       tooltip: {
         trigger: "item",
-        backgroundColor: "#FFFFFF",
-        borderColor: "#E2E8F0",
-        textStyle: { color: "#0F172A", fontSize: 11 },
+        backgroundColor: "#181414",
+        borderColor: "#3D3030",
+        textStyle: { color: "#F3F4F6", fontSize: 11 },
       },
       legend: {
         bottom: 0,
         left: "center",
-        textStyle: { color: "#475569", fontSize: 11 },
+        textStyle: { color: "#A3A3A3", fontSize: 10 },
       },
       series: [
         {
@@ -59,9 +59,16 @@ export function AreaStatusDonut({
             show: true,
             position: "center",
             formatter: `${total}\nTitik`,
-            fontSize: 15,
+            fontSize: 16,
             fontWeight: "bold",
-            color: "#0F172A",
+            color: "#FFFFFF",
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 16,
+              fontWeight: "bold",
+            },
           },
           data,
         },
@@ -79,9 +86,10 @@ export function AreaStatusDonut({
   }, [statusBreakdown]);
 
   return (
-    <div className="w-full bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-      <h4 className="text-sm font-extrabold text-slate-900 mb-2">Sebaran Status Titik Sensor</h4>
+    <div className="w-full bg-[#181414] border border-[#2D2424] rounded-xl p-4">
+      <h4 className="text-sm font-semibold text-white mb-2">Sebaran Status Titik Sensor</h4>
       <div ref={chartRef} className="w-full h-56" />
     </div>
   );
 }
+
