@@ -3,18 +3,15 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import {
-  Sparkles,
   Flame,
   RotateCcw,
   Send,
-  AlertTriangle,
-  BatteryCharging,
-  Droplets,
   CheckCircle2,
   ArrowRight,
   Sliders,
 } from "lucide-react";
 import { PeatCrossSectionSvg } from "@/components/charts/PeatCrossSectionSvg";
+import { PakuBaraLogo } from "@/components/layout/AppSidebar";
 
 interface Scenario {
   id: string;
@@ -26,38 +23,46 @@ interface Scenario {
 const SCENARIOS: Scenario[] = [
   {
     id: "bara_merambat",
-    name: "Skenario 1: Bara Merambat Bawah Permukaan",
-    description: "Suhu PK-04 melonjak ke 92°C, probe tetangga PK-05 mulai naik ke 54°C, tiang gas GS-01 mendeteksi 185 ppm CO.",
-    expected_outcome: "Sistem memvalidasi fusi 3 dari 3 sinyal, status AKTIF, kalkulasi vektor arah Timur Laut, ETA 11.9 jam.",
+    name: "Skenario 1: Bara Merambat Bawah Permukaan (PK-04)",
+    description:
+      "Suhu PK-04 melonjak ke 542°C di kedalaman 50 cm, permukaan tetap dingin (34°C), dan tiang CO-02 mendeteksi 185 ppm CO.",
+    expected_outcome:
+      "Sistem memvalidasi fusi 3 dari 3 sinyal, status BARA AKTIF, prediksi kecepatan rambat 4,2 cm/jam ke arah Timur Laut.",
   },
   {
     id: "alarm_palsu_co",
     name: "Skenario 2: Filtrasi Alarm Palsu Asap Genset",
-    description: "Tiang gas GS-02 mendeteksi lonjakan gas CO 120 ppm akibat knalpot genset patroli, namun suhu paku tanah PK-02 dan PK-03 tetap 30°C.",
-    expected_outcome: "Sistem menolak alarm karena hanya 1 dari 3 sinyal yang terpenuhi. Status tetap Normal.",
+    description:
+      "Tiang gas GS-02 mendeteksi lonjakan gas CO 120 ppm akibat knalpot genset patroli, namun suhu paku tanah PK-02 dan PK-03 tetap 30°C.",
+    expected_outcome:
+      "Sistem menolak alarm karena hanya 1 dari 3 sinyal yang terpenuhi. Status tetap Aman.",
   },
   {
     id: "paku_mati_baterai",
     name: "Skenario 3: Deteksi Node Offline & Baterai Kritis",
-    description: "Node PK-07 mengalami penurunan voltase baterai di bawah 3.2V dan tidak mengirimkan denyut selama lebih dari 30 menit.",
-    expected_outcome: "Node ditandai OFFLINE pada peta komando. Tetangga PK-01 beralih ke mode pengawasan terisolasi.",
+    description:
+      "Node PK-07 mengalami penurunan voltase baterai di bawah 3.2V dan tidak mengirimkan denyut selama lebih dari 30 menit.",
+    expected_outcome:
+      "Node ditandai OFFLINE pada peta komando. Tetangga PK-01 beralih ke mode pengawasan terisolasi.",
   },
   {
     id: "pemulihan_area",
-    name: "Skenario 4: Pemadaman Sukses & Rantai Hari Aman",
-    description: "Regu Manggala Agni melakukan injeksi nozzle 800 Liter air ke kedalaman 50 cm. Suhu turun kembali ke 32°C.",
-    expected_outcome: "Alert ditandai Resolved, status kembali Normal, sistem memulai perhitungan rantai hari aman wilayah (Permen LHK).",
+    name: "Skenario 4: Pemadaman Peat Nozzle Sukses & Verifikasi 72 Jam",
+    description:
+      "Regu Manggala Agni melakukan injeksi Peat Nozzle 120 Liter air ke kedalaman 50 cm. Suhu turun kembali ke 32°C.",
+    expected_outcome:
+      "Alert ditandai Resolved, status beralih ke Protokol Verifikasi Lahan 72 Jam (Permen LHK P.32/2016).",
   },
 ];
 
 export default function DemoPage() {
   const [selectedScenario, setSelectedScenario] = useState<string>("bara_merambat");
-  const [targetTemp, setTargetTemp] = useState<number>(95);
-  const [coPpm, setCoPpm] = useState<number>(210);
+  const [targetTemp, setTargetTemp] = useState<number>(542);
+  const [coPpm, setCoPpm] = useState<number>(185);
   const [testPhone, setTestPhone] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [resultMessage, setResultMessage] = useState<string | null>(null);
-  const [currentT50, setCurrentT50] = useState<number>(87.3);
+  const [currentT50, setCurrentT50] = useState<number>(542);
 
   const handleApplyScenario = async (scId: string) => {
     setLoading(true);
@@ -71,11 +76,11 @@ export default function DemoPage() {
       const data = await res.json();
       if (data.success) {
         setSelectedScenario(scId);
-        setResultMessage(`Skenario "${data.scenario.name}" berhasil diterapkan!`);
+        setResultMessage(`Skenario "${data.scenario.name}" berhasil diterapkan.`);
         if (scId === "bara_merambat") {
-          setCurrentT50(92.0);
+          setCurrentT50(542);
         } else if (scId === "pemulihan_area") {
-          setCurrentT50(32.0);
+          setCurrentT50(32);
         }
       } else {
         setResultMessage(`Gagal menerapkan skenario: ${data.error}`);
@@ -121,7 +126,7 @@ export default function DemoPage() {
       const res = await fetch("/api/demo/reset", { method: "POST" });
       const data = await res.json();
       if (data.success) {
-        setCurrentT50(87.3);
+        setCurrentT50(542);
         setResultMessage(data.message);
       }
     } catch (err) {
@@ -134,7 +139,7 @@ export default function DemoPage() {
   const handleSendTestWa = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!testPhone) {
-      setResultMessage("Nomor WhatsApp wajib diisi (misal: 628123456789)");
+      setResultMessage("Nomor WhatsApp wajib diisi (contoh: 628123456789)");
       return;
     }
     setLoading(true);
@@ -159,74 +164,71 @@ export default function DemoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121010] text-[#F3F4F6] selection:bg-[#EA580C] selection:text-white">
+    <div className="min-h-screen bg-[#F6F8F7] text-slate-900 select-none">
       {/* Top Bar */}
-      <header className="h-16 border-b border-[#2D2424] bg-[#181414] px-6 flex items-center justify-between sticky top-0 z-40">
+      <header className="h-16 border-b border-slate-200 bg-white px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#EA580C] to-[#DC2626] flex items-center justify-center shadow-lg">
-              <Flame className="w-5 h-5 text-white animate-pulse" />
-            </div>
-            <span className="font-mono font-bold text-base tracking-wider text-white">PAKUBARA</span>
+          <Link href="/" className="flex items-center gap-2.5">
+            <PakuBaraLogo className="w-8 h-8" />
+            <span className="font-extrabold text-lg tracking-tight">
+              <span className="text-[#0284C7]">Paku</span>
+              <span className="text-[#EA580C]">Bara</span>
+            </span>
           </Link>
-          <span className="text-neutral-500 font-mono">/</span>
-          <span className="text-xs font-semibold text-amber-400 font-mono uppercase tracking-wider flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4" />
+          <span className="text-slate-300">/</span>
+          <span className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
             Simulator Interaktif Dewan Juri
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={handleReset}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-[#241D1D] hover:bg-[#2D2424] text-neutral-300 border border-[#382B2B] transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset Simulasi</span>
           </button>
           <Link
             href="/app"
-            className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold rounded-lg bg-[#EA580C] hover:bg-[#F97316] text-white transition-all shadow-md"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-[#0D2B1D] hover:bg-[#143d29] text-white transition-colors shadow-xs"
           >
             <span>Buka Peta Komando</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-3.5 h-3.5 text-emerald-300" />
           </Link>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-        {/* Banner Penjelasan */}
-        <div className="p-4 rounded-xl bg-gradient-to-r from-amber-950/40 via-[#1C1616] to-[#1C1616] border border-amber-700/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+        {/* Banner */}
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h2 className="text-sm font-bold text-amber-300 flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              Pusat Eksperimen Tanpa Ketergantungan Hardware
-            </h2>
-            <p className="text-xs text-neutral-300 max-w-3xl leading-relaxed">
-              Dewan juri dapat memicu skenario ekstrem karhutla, memanaskan probe secara dinamis, menguji algoritma fusi
-              2 dari 3 sinyal, serta menguji penerimaan notifikasi darurat WhatsApp langsung ke nomor pribadi Anda.
+            <h1 className="text-base font-extrabold text-slate-900">
+              Pusat Eksperimen Telemetri Subsurface Tanpa Ketergantungan Hardware Fisik
+            </h1>
+            <p className="text-xs text-slate-600 max-w-3xl leading-relaxed">
+              Dewan juri dapat memicu skenario pembaraan bawah tanah, mengatur suhu zona pirolisis 50 cm,
+              menguji fusi 2 dari 3 sinyal, dan mengirim pesan peringatan dini WhatsApp langsung ke ponsel.
             </p>
           </div>
-          <span className="text-[11px] font-mono px-2.5 py-1 rounded bg-amber-500/20 text-amber-200 border border-amber-500/30 whitespace-nowrap">
-            MODE DEMO AKTIF
+          <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
+            MODE SIMULASI JURI AKTIF
           </span>
         </div>
 
-        {/* Notifikasi feedback aksi */}
         {resultMessage && (
-          <div className="p-3.5 rounded-xl bg-[#1C1616] border border-emerald-700/60 text-emerald-300 text-xs flex items-center gap-2.5 animate-fadeIn">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{resultMessage}</span>
           </div>
         )}
 
-        {/* 4 Kartu Skenario */}
-        <div>
-          <h3 className="text-sm font-semibold text-white uppercase tracking-wider font-mono mb-4">
+        {/* 4 Skenario */}
+        <div className="space-y-3">
+          <h2 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
             1. Pilih Skenario Uji Standar
-          </h3>
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {SCENARIOS.map((sc) => {
               const isSelected = selectedScenario === sc.id;
@@ -234,22 +236,22 @@ export default function DemoPage() {
                 <div
                   key={sc.id}
                   onClick={() => handleApplyScenario(sc.id)}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                  className={`p-4 rounded-2xl border cursor-pointer transition-all ${
                     isSelected
-                      ? "bg-[#221818] border-[#EA580C] shadow-lg shadow-orange-950/30"
-                      : "bg-[#181414] border-[#2D2424] hover:border-[#3D3030]"
+                      ? "bg-white border-[#0D2B1D] ring-2 ring-[#0D2B1D]/10 shadow-xs"
+                      : "bg-white border-slate-200 hover:border-slate-300"
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-white">{sc.name}</span>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-extrabold text-slate-900">{sc.name}</span>
                     {isSelected && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#EA580C] text-white">
+                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#0D2B1D] text-white">
                         Aktif
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-neutral-400 leading-relaxed">{sc.description}</p>
-                  <div className="mt-3 pt-2.5 border-t border-[#261E1E] text-[11px] text-amber-400/90 font-mono">
+                  <p className="text-xs text-slate-600 leading-relaxed">{sc.description}</p>
+                  <div className="mt-3 pt-2.5 border-t border-slate-100 text-[11px] text-emerald-800 font-medium">
                     Hasil: {sc.expected_outcome}
                   </div>
                 </div>
@@ -258,73 +260,79 @@ export default function DemoPage() {
           </div>
         </div>
 
-        {/* Kontrol Pemanasan Titik Dinamis & Penampang */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Panel Kontrol Suhu */}
-          <div className="p-5 rounded-xl bg-[#181414] border border-[#2D2424] space-y-5">
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider font-mono flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-[#EA580C]" />
-              2. Manipulasi Parameter Suhu & Gas (PK-04)
+        {/* Sliders & Cross Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-5">
+            <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+              <Sliders className="w-4 h-4 text-emerald-700" />
+              <span>2. Manipulasi Parameter Suhu &amp; Gas (Node PK-04)</span>
             </h3>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-neutral-300">Suhu Gambut Kedalaman 50 cm:</span>
-                <span className="font-mono text-base font-bold text-red-400">{targetTemp}°C</span>
+                <span className="text-slate-600 font-medium">
+                  Suhu Gambut Kedalaman 50 cm (Zona Pirolisis):
+                </span>
+                <span className="font-mono text-base font-extrabold text-red-600">
+                  {targetTemp}°C
+                </span>
               </div>
               <input
                 type="range"
-                min="25"
-                max="150"
-                step="1"
+                min="28"
+                max="600"
+                step="2"
                 value={targetTemp}
                 onChange={(e) => setTargetTemp(Number(e.target.value))}
-                className="w-full h-2 bg-[#2D2424] rounded-lg appearance-none cursor-pointer accent-[#EA580C]"
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-600"
               />
-              <div className="flex justify-between text-[10px] font-mono text-neutral-500">
-                <span>25°C (Normal)</span>
-                <span>60°C (Ambang Bara)</span>
-                <span>150°C (Pirolisis Berat)</span>
+              <div className="flex justify-between text-[10px] font-mono text-slate-400">
+                <span>28°C (Normal)</span>
+                <span>100°C (Pengeringan)</span>
+                <span>542°C (Bara Pirolisis)</span>
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-neutral-300">Konsentrasi Gas CO (GS-01):</span>
-                <span className="font-mono text-base font-bold text-sky-400">{coPpm} ppm</span>
+                <span className="text-slate-600 font-medium">
+                  Konsentrasi Gas CO (Tiang CO-02):
+                </span>
+                <span className="font-mono text-base font-extrabold text-amber-700">
+                  {coPpm} ppm
+                </span>
               </div>
               <input
                 type="range"
-                min="0"
-                max="400"
+                min="10"
+                max="300"
                 step="5"
                 value={coPpm}
                 onChange={(e) => setCoPpm(Number(e.target.value))}
-                className="w-full h-2 bg-[#2D2424] rounded-lg appearance-none cursor-pointer accent-sky-500"
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-600"
               />
-              <div className="flex justify-between text-[10px] font-mono text-neutral-500">
-                <span>0 ppm</span>
-                <span>50 ppm (Ambang Gas)</span>
-                <span>400 ppm (Kritis)</span>
+              <div className="flex justify-between text-[10px] font-mono text-slate-400">
+                <span>10 ppm (Normal)</span>
+                <span>100 ppm (Ambang Smouldering)</span>
+                <span>300 ppm (Kritis)</span>
               </div>
             </div>
 
             <button
               onClick={handleHeatNode}
               disabled={loading}
-              className="w-full py-2.5 rounded-lg bg-[#EA580C] hover:bg-[#F97316] text-white text-xs font-semibold tracking-wide transition-all shadow-md flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl bg-[#0D2B1D] hover:bg-[#143d29] text-white text-xs font-bold transition-colors shadow-xs flex items-center justify-center gap-2"
             >
-              <Flame className="w-4 h-4" />
-              <span>Terapkan Panas ke Node PK-04 Sekarang</span>
+              <Flame className="w-4 h-4 text-orange-400" />
+              <span>Terapkan Parameter ke Node PK-04 Sekarang</span>
             </button>
           </div>
 
-          {/* Penampang Gambut Real-time */}
           <div>
             <PeatCrossSectionSvg
-              t20={36.4}
+              t20={34}
               t50={currentT50}
-              t100={42.0}
+              t100={68}
               waterTableCm={-55}
               highlightDepth={50}
               interactive={false}
@@ -332,15 +340,15 @@ export default function DemoPage() {
           </div>
         </div>
 
-        {/* Uji Notifikasi WhatsApp ke Nomor Juri */}
-        <div className="p-5 rounded-xl bg-[#181414] border border-[#2D2424]">
-          <h3 className="text-sm font-semibold text-white uppercase tracking-wider font-mono flex items-center gap-2 mb-2">
-            <Send className="w-4 h-4 text-emerald-400" />
-            3. Uji Pengiriman Pesan WhatsApp Resmi (Fonnte API)
+        {/* WhatsApp Test */}
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
+          <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+            <Send className="w-4 h-4 text-emerald-700" />
+            <span>3. Uji Pengiriman Pesan WhatsApp Resmi (Fonnte API)</span>
           </h3>
-          <p className="text-xs text-neutral-400 mb-4 max-w-2xl leading-relaxed">
-            Ketik nomor WhatsApp aktif Anda (format: 62812xxxxxxxx) untuk menerima format pesan 8 baris darurat
-            yang akan diterima oleh regu pemadam Manggala Agni di lapangan.
+          <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
+            Ketik nomor WhatsApp aktif Anda (format: 62812xxxxxxxx) untuk menerima format peringatan dini
+            bara gambut beserta koordinat GPS dan panduan injeksi Peat Nozzle 120 Liter.
           </p>
 
           <form onSubmit={handleSendTestWa} className="flex flex-col sm:flex-row gap-3 max-w-xl">
@@ -349,14 +357,14 @@ export default function DemoPage() {
               placeholder="Contoh: 628123456789"
               value={testPhone}
               onChange={(e) => setTestPhone(e.target.value)}
-              className="flex-1 bg-[#121010] border border-[#2D2424] rounded-lg px-3.5 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#EA580C]"
+              className="flex-1 bg-[#F8FAFC] border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-emerald-700"
             />
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 shrink-0"
+              className="px-5 py-2 rounded-xl bg-[#0D2B1D] hover:bg-[#143d29] text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 shrink-0"
             >
-              <Send className="w-3.5 h-3.5" />
+              <Send className="w-3.5 h-3.5 text-emerald-300" />
               <span>Kirim Alert Uji</span>
             </button>
           </form>
@@ -365,4 +373,3 @@ export default function DemoPage() {
     </div>
   );
 }
-

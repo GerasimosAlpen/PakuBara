@@ -5,10 +5,10 @@ import * as echarts from "echarts";
 
 interface RiskFactorBarsProps {
   factors?: {
-    cuaca: number; // e.g. 0.85
-    historis: number; // e.g. 0.70
-    gambut: number; // e.g. 0.90
-    akses: number; // e.g. 0.60
+    cuaca: number;
+    historis: number;
+    gambut: number;
+    akses: number;
   };
 }
 
@@ -21,7 +21,7 @@ export function RiskFactorBars({
   useEffect(() => {
     if (!chartRef.current) return;
     if (!chartInstance.current) {
-      chartInstance.current = echarts.init(chartRef.current, "dark");
+      chartInstance.current = echarts.init(chartRef.current);
     }
 
     const categories = [
@@ -43,9 +43,9 @@ export function RiskFactorBars({
       tooltip: {
         trigger: "axis",
         axisPointer: { type: "shadow" },
-        backgroundColor: "#181414",
-        borderColor: "#3D3030",
-        textStyle: { color: "#F3F4F6", fontSize: 11 },
+        backgroundColor: "#FFFFFF",
+        borderColor: "#E2E8F0",
+        textStyle: { color: "#0F172A", fontSize: 11 },
         formatter: "{b}: {c}% kontribusi risiko",
       },
       grid: {
@@ -57,24 +57,25 @@ export function RiskFactorBars({
       xAxis: {
         type: "value",
         max: 100,
-        axisLabel: { color: "#737373", fontSize: 10, formatter: "{value}%" },
-        splitLine: { lineStyle: { color: "#241D1D" } },
+        axisLabel: { color: "#64748B", fontSize: 10, formatter: "{value}%" },
+        splitLine: { lineStyle: { color: "#E2E8F0", type: "dashed" } },
       },
       yAxis: {
         type: "category",
         data: categories,
-        axisLine: { lineStyle: { color: "#2D2424" } },
-        axisLabel: { color: "#A3A3A3", fontSize: 10 },
+        axisLine: { lineStyle: { color: "#CBD5E1" } },
+        axisLabel: { color: "#334155", fontSize: 11, fontWeight: 600 },
       },
       series: [
         {
           name: "Kontribusi Faktor",
           type: "bar",
+          barWidth: 16,
           data: values.map((val) => ({
             value: val,
             itemStyle: {
-              color: val > 80 ? "#DC2626" : val > 65 ? "#EA580C" : "#F59E0B",
-              borderRadius: [0, 4, 4, 0],
+              color: val > 80 ? "#DC2626" : val > 65 ? "#D97706" : "#16A34A",
+              borderRadius: [0, 6, 6, 0],
             },
           })),
         },
@@ -92,10 +93,11 @@ export function RiskFactorBars({
   }, [factors]);
 
   return (
-    <div className="w-full bg-[#181414] border border-[#2D2424] rounded-xl p-4">
-      <h4 className="text-sm font-semibold text-white mb-2">Dekomposisi Faktor Prioritas Siaga</h4>
+    <div className="w-full bg-[#F8FAFC] border border-slate-200 rounded-xl p-4">
+      <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-2">
+        Dekomposisi Faktor Prioritas Siaga (Permutation Importance)
+      </h4>
       <div ref={chartRef} className="w-full h-48" />
     </div>
   );
 }
-

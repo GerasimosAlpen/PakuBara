@@ -7,13 +7,8 @@ import { AppSidebar } from "@/components/layout/AppSidebar";
 import {
   Radio,
   Plus,
-  Battery,
-  Wifi,
-  Clock,
   Key,
-  ShieldCheck,
   CheckCircle2,
-  AlertCircle,
   ExternalLink,
 } from "lucide-react";
 
@@ -44,7 +39,6 @@ interface NodeItem {
 export default function DevicesPage() {
   const [gateways, setGateways] = useState<GatewayItem[]>([]);
   const [nodes, setNodes] = useState<NodeItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [showAddGateway, setShowAddGateway] = useState<boolean>(false);
   const [newGwName, setNewGwName] = useState<string>("");
   const [newGwMac, setNewGwMac] = useState<string>("");
@@ -67,8 +61,6 @@ export default function DevicesPage() {
       }
     } catch (err) {
       console.error("Gagal memuat perangkat:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -100,70 +92,65 @@ export default function DevicesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121010] text-[#F3F4F6] flex flex-col select-none">
-      <AppNavbar />
+    <div className="min-h-screen bg-[#F6F8F7] text-slate-900 flex select-none">
+      <AppSidebar />
 
-      <div className="flex flex-1 overflow-hidden">
-        <AppSidebar />
+      <div className="flex-1 flex flex-col min-w-0">
+        <AppNavbar
+          breadcrumb="PUSAT OPERASI / PENGATURAN NODE LORA"
+          pageTitle="Inventaris Perangkat IoT & Stasiun Gateway LoRaWAN"
+        />
 
-        <main className="flex-1 overflow-y-auto p-6 space-y-8">
-          {/* Header */}
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2D2424] pb-4">
-            <div>
-              <h1 className="text-xl font-bold font-mono text-white flex items-center gap-2">
-                <Radio className="w-5 h-5 text-[#EA580C]" />
-                INVENTARIS PERANGKAT IOT & GATEWAY
-              </h1>
-              <p className="text-xs text-neutral-400 mt-1">
-                Manajemen paku termal, tiang gas CO, dan stasiun penerima LoRa posko lapangan.
-              </p>
-            </div>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-slate-600">
+              Manajemen probe paku termal DS18B20, tiang gas CO MQ-7, dan gateway penerima LoRa posko lapangan.
+            </p>
 
             <button
               onClick={() => {
                 setShowAddGateway(true);
                 setCreatedApiKey(null);
               }}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#EA580C] hover:bg-[#F97316] text-white text-xs font-semibold shadow-md transition-colors"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D2B1D] hover:bg-[#143d29] text-white text-xs font-bold shadow-xs transition-colors"
             >
-              <Plus className="w-4 h-4" />
-              <span>Daftarkan Gateway Baru</span>
+              <Plus className="w-4 h-4 text-emerald-300" />
+              <span>Daftarkan Gateway Posko Baru</span>
             </button>
           </div>
 
-          {/* Modal / Card Pendaftaran Gateway Baru */}
           {showAddGateway && (
-            <div className="p-5 rounded-xl bg-[#181414] border border-[#EA580C]/60 space-y-4">
+            <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-white font-mono flex items-center gap-2">
-                  <Key className="w-4 h-4 text-amber-400" />
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <Key className="w-4 h-4 text-amber-600" />
                   Registrasi Gateway Stasiun Posko
                 </h3>
                 <button
                   onClick={() => setShowAddGateway(false)}
-                  className="text-xs text-neutral-400 hover:text-white"
+                  className="text-xs text-slate-500 hover:text-slate-900 font-semibold"
                 >
                   Tutup
                 </button>
               </div>
 
               {createdApiKey ? (
-                <div className="p-4 rounded-lg bg-emerald-950/40 border border-emerald-800 text-xs text-emerald-300 space-y-2">
+                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 space-y-2">
                   <div className="font-bold flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>Gateway Berhasil Didaftarkan!</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>Gateway Berhasil Didaftarkan</span>
                   </div>
-                  <p className="text-[11px] text-neutral-300">
-                    Gunakan API Key berikut pada skrip Node.js Bridge atau firmware ESP32 posko. API Key ini tidak akan ditampilkan kembali:
+                  <p className="text-[11px] text-emerald-800">
+                    Gunakan API Key berikut pada skrip Node.js Serial Bridge (`bridge/serial-bridge.js`):
                   </p>
-                  <div className="p-2.5 rounded bg-black/60 font-mono text-amber-300 font-bold select-all break-all">
+                  <div className="p-2.5 rounded-lg bg-white border border-emerald-200 font-mono text-slate-900 font-bold select-all break-all">
                     {createdApiKey}
                   </div>
                 </div>
               ) : (
                 <form onSubmit={handleRegisterGateway} className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div>
-                    <label className="text-[10px] text-neutral-400 uppercase font-mono block mb-1">
+                    <label className="text-[11px] text-slate-600 font-semibold block mb-1">
                       Nama Posko / Lokasi
                     </label>
                     <input
@@ -172,11 +159,11 @@ export default function DevicesPage() {
                       placeholder="Contoh: Posko Kanal Sekunder 2"
                       value={newGwName}
                       onChange={(e) => setNewGwName(e.target.value)}
-                      className="w-full bg-[#121010] border border-[#2D2424] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#EA580C]"
+                      className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-700"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-neutral-400 uppercase font-mono block mb-1">
+                    <label className="text-[11px] text-slate-600 font-semibold block mb-1">
                       MAC Address ESP32
                     </label>
                     <input
@@ -185,15 +172,15 @@ export default function DevicesPage() {
                       placeholder="Contoh: A4:CF:12:88:9B:02"
                       value={newGwMac}
                       onChange={(e) => setNewGwMac(e.target.value)}
-                      className="w-full bg-[#121010] border border-[#2D2424] rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-[#EA580C]"
+                      className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono focus:outline-none focus:border-emerald-700"
                     />
                   </div>
                   <div className="sm:col-span-2 flex justify-end">
                     <button
                       type="submit"
-                      className="px-5 py-2 rounded-lg bg-[#EA580C] hover:bg-[#F97316] text-white font-semibold text-xs transition-colors"
+                      className="px-5 py-2 rounded-xl bg-[#0D2B1D] hover:bg-[#143d29] text-white font-bold text-xs transition-colors"
                     >
-                      Simpan & Dapatkan API Key
+                      Simpan &amp; Buat API Key
                     </button>
                   </div>
                 </form>
@@ -201,29 +188,39 @@ export default function DevicesPage() {
             </div>
           )}
 
-          {/* Section 1: Gateways */}
+          {/* Gateways Grid */}
           <div className="space-y-3">
-            <h2 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider font-mono">
+            <h2 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
               Gateway LoRa Posko Lapangan ({gateways.length})
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {gateways.map((gw) => (
-                <div key={gw.id} className="p-4 rounded-xl bg-[#181414] border border-[#2D2424] space-y-3">
+                <div
+                  key={gw.id}
+                  className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3"
+                >
                   <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-bold text-white font-mono">{gw.name}</div>
-                      <div className="text-[10px] text-neutral-500 font-mono">MAC: {gw.mac_address}</div>
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700">
+                        <Radio className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-extrabold text-slate-900">{gw.name}</div>
+                        <div className="text-[11px] text-slate-500 font-mono">
+                          MAC: {gw.mac_address}
+                        </div>
+                      </div>
                     </div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold uppercase">
+                    <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold uppercase">
                       {gw.status}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs text-neutral-400 pt-2 border-t border-[#261E1E]">
+                  <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
                     <span>Firmware: {gw.firmware_version}</span>
                     <span className="font-mono">
-                      Detak Terakhir: {new Date(gw.last_ping).toLocaleTimeString("id-ID")}
+                      Ping: {new Date(gw.last_ping).toLocaleTimeString("id-ID")}
                     </span>
                   </div>
                 </div>
@@ -231,27 +228,27 @@ export default function DevicesPage() {
             </div>
           </div>
 
-          {/* Section 2: Nodes Table */}
-          <div className="space-y-3">
-            <h2 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider font-mono">
-              Titik Sensor Paku & Tiang Gas ({nodes.length})
+          {/* Nodes Table */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
+            <h2 className="text-sm font-extrabold text-slate-900">
+              Titik Sensor Paku &amp; Tiang Gas CO ({nodes.length} Node Terdaftar)
             </h2>
 
-            <div className="overflow-x-auto rounded-xl border border-[#2D2424] bg-[#181414]">
+            <div className="overflow-x-auto rounded-xl border border-slate-200">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#121010] text-neutral-400 font-mono text-[10px] uppercase border-b border-[#2D2424]">
+                <thead className="bg-[#F8FAFC] text-slate-500 font-semibold border-b border-slate-200">
                   <tr>
                     <th className="p-3">ID Titik</th>
-                    <th className="p-3">Tipe</th>
+                    <th className="p-3">Tipe Sensor</th>
                     <th className="p-3">Status</th>
                     <th className="p-3">Suhu 50cm / CO</th>
                     <th className="p-3">Baterai</th>
                     <th className="p-3">Sinyal (RSSI)</th>
                     <th className="p-3">Terakhir Kirim</th>
-                    <th className="p-3 text-right">Aksi</th>
+                    <th className="p-3 text-right">Diagnostik</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#261E1E]">
+                <tbody className="divide-y divide-slate-200 bg-white">
                   {nodes.map((node) => {
                     const readingText =
                       node.type === "probe"
@@ -260,38 +257,40 @@ export default function DevicesPage() {
                     const volt = ((node.batt_mv ?? 3800) / 1000).toFixed(2);
 
                     return (
-                      <tr key={node.id} className="hover:bg-[#1C1616] transition-colors">
-                        <td className="p-3 font-mono font-bold text-white">{node.id}</td>
-                        <td className="p-3 text-neutral-300">
-                          {node.type === "probe" ? "Paku Termal" : "Tiang Gas"}
+                      <tr key={node.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="p-3 font-mono font-extrabold text-slate-900">{node.id}</td>
+                        <td className="p-3 text-slate-600 font-medium">
+                          {node.type === "probe"
+                            ? "Paku Probe SUS 304 (DS18B20)"
+                            : "Tiang Gas CO (MQ-7)"}
                         </td>
                         <td className="p-3">
                           <span
-                            className={`text-[9px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
+                            className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase ${
                               node.status === "active"
-                                ? "bg-red-950 text-red-400 border border-red-800 animate-pulse"
+                                ? "bg-red-50 text-red-700 border border-red-200"
                                 : node.status === "watch"
-                                ? "bg-amber-950 text-amber-400 border border-amber-800"
+                                ? "bg-amber-50 text-amber-800 border border-amber-200"
                                 : node.status === "offline"
-                                ? "bg-neutral-800 text-neutral-400"
-                                : "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                                ? "bg-slate-100 text-slate-500 border border-slate-200"
+                                : "bg-emerald-50 text-emerald-800 border border-emerald-200"
                             }`}
                           >
-                            {node.status}
+                            {node.status === "active" ? "BARA AKTIF" : node.status}
                           </span>
                         </td>
-                        <td className="p-3 font-mono font-bold text-amber-400">{readingText}</td>
-                        <td className="p-3 font-mono text-neutral-300">{volt} V</td>
-                        <td className="p-3 font-mono text-neutral-400">{node.rssi} dBm</td>
-                        <td className="p-3 font-mono text-neutral-500">
+                        <td className="p-3 font-mono font-bold text-slate-900">{readingText}</td>
+                        <td className="p-3 font-mono text-slate-600">{volt} V</td>
+                        <td className="p-3 font-mono text-slate-600">{node.rssi} dBm</td>
+                        <td className="p-3 font-mono text-slate-500">
                           {new Date(node.last_seen).toLocaleTimeString("id-ID")}
                         </td>
                         <td className="p-3 text-right">
                           <Link
                             href={`/app/nodes/${node.id}`}
-                            className="text-[#EA580C] hover:text-[#F97316] font-medium font-mono text-xs inline-flex items-center gap-1"
+                            className="text-emerald-800 hover:underline font-bold text-xs inline-flex items-center gap-1"
                           >
-                            <span>Detail</span>
+                            <span>Buka</span>
                             <ExternalLink className="w-3 h-3" />
                           </Link>
                         </td>
@@ -307,4 +306,3 @@ export default function DevicesPage() {
     </div>
   );
 }
-
