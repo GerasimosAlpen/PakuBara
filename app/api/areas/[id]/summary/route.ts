@@ -36,7 +36,7 @@ export async function GET(
             phone_recipients: area?.phone_recipients || [],
             is_active: true,
           };
-          nodes = dbArea.nodes.map((n) => ({
+          nodes = ((dbArea as any).nodes || []).map((n: any) => ({
             id: n.id,
             short_id: n.shortId,
             org_id: n.orgId,
@@ -47,7 +47,7 @@ export async function GET(
             status: n.status as "normal" | "watch" | "warning" | "active" | "offline",
             batt_mv: n.battMv ?? 3900,
             rssi: n.rssi ?? -80,
-            last_seen: n.lastSeen ? n.lastSeen.toISOString() : new Date().toISOString(),
+            last_seen: n.lastSeen ? new Date(n.lastSeen).toISOString() : new Date().toISOString(),
             last_reading: {},
           }));
         }
