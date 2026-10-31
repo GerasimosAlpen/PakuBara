@@ -6,6 +6,7 @@ import { AppNavbar } from "@/components/layout/AppNavbar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { CommandMap, MapNode, MapHotspot } from "@/components/map/CommandMap";
 import { TimelineReplayBar } from "@/components/map/TimelineReplayBar";
+import { InMapSimulatorModal } from "@/components/simulator/InMapSimulatorModal";
 import {
   Flame,
   Radio,
@@ -16,6 +17,7 @@ import {
   X,
   Droplets,
   Activity,
+  Sparkles,
 } from "lucide-react";
 
 export default function AppCommandPage() {
@@ -24,50 +26,55 @@ export default function AppCommandPage() {
   const [selectedNode, setSelectedNode] = useState<MapNode | null>(null);
   const [selectedAreaId, setSelectedAreaId] = useState<string>("a0000000-0000-0000-0000-000000000001");
   const [loading, setLoading] = useState<boolean>(true);
+  const [showSimulatorModal, setShowSimulatorModal] = useState<boolean>(false);
 
   // Fetch nodes & hotspots
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [nodesRes, hotspotsRes] = await Promise.all([
-          fetch("/api/nodes"),
-          fetch("/api/layers/hotspots"),
-        ]);
-        const nodesData = await nodesRes.json();
-        const hotspotsData = await hotspotsRes.json();
+  const loadData = async () => {
+    try {
+      const [nodesRes, hotspotsRes] = await Promise.all([
+        fetch("/api/nodes"),
+        fetch("/api/layers/hotspots"),
+      ]);
+      const nodesData = await nodesRes.json();
+      const hotspotsData = await hotspotsRes.json();
 
-        const nodesList = Array.isArray(nodesData?.data)
-          ? nodesData.data
-          : Array.isArray(nodesData)
-          ? nodesData
-          : [];
-        setNodes(nodesList);
+      const nodesList = Array.isArray(nodesData?.data)
+        ? nodesData.data
+        : Array.isArray(nodesData)
+        ? nodesData
+        : [];
+      setNodes(nodesList);
 
-        // Select initial focus node
-        const initialNode = nodesList.find((n: MapNode) => n.id === "PK-04") || nodesList[0];
-        if (initialNode) setSelectedNode(initialNode);
-
-        const hotspotsList = Array.isArray(hotspotsData?.data)
-          ? hotspotsData.data
-          : Array.isArray(hotspotsData?.features)
-          ? hotspotsData.features.map((f: any) => ({
-              id: f.id || f.properties?.id,
-              lat: f.geometry?.coordinates?.[1] || 0,
-              lon: f.geometry?.coordinates?.[0] || 0,
-              frp: f.properties?.frp || 20,
-              confidence: f.properties?.confidence || "high",
-            }))
-          : Array.isArray(hotspotsData)
-          ? hotspotsData
-          : [];
-        setHotspots(hotspotsList);
-      } catch (err) {
-        console.error("Gagal memuat data peta komando:", err);
-      } finally {
-        setLoading(false);
-      }
+      const hotspotsList = Array.isArray(hotspotsData?.data)
+        ? hotspotsData.data
+        : Array.isArray(hotspotsData?.features)
+        ? hotspotsData.features.map((f: any) => ({
+            id: f.id || f.properties?.id,
+            lat: f.geometry?.coordinates?.[1] || 0,
+            lon: f.geometry?.coordinates?.[0] || 0,
+            frp: f.properties?.frp || 20,
+            confidence: f.properties?.confidence || "high",
+          }))
+        : Array.isArray(hotspotsData)
+        ? hotspotsData
+        : [];
+      setHotspots(hotspotsList);
+    } catch (err) {
+      console.error("Gagal memuat data peta komando:", err);
+    } finally {
+      setLoading(false);
     }
-    loadData();
+  };
+
+  useEffect(() => {
+    loadData().then(() => {
+      // Select initial focus node
+      setNodes((currentNodes) => {
+        const initialNode = currentNodes.find((n: MapNode) => n.id === "PK-04") || currentNodes[0];
+        if (initialNode) setSelectedNode(initialNode);
+        return currentNodes;
+      });
+    });
   }, []);
 
   const handleSelectArea = (areaId: string) => {
@@ -206,6 +213,7 @@ export default function AppCommandPage() {
               onSelectNode={(node) => setSelectedNode(node)}
               activeAreaId={selectedAreaId}
               onSelectArea={handleSelectArea}
+              onOpenSimulator={() => setShowSimulatorModal(true)}
               spreadVector={spreadVector}
               wind={{ speedKmh: 14.2, directionDeg: isKalimantan ? 310 : 220 }}
             />
@@ -300,6 +308,14 @@ export default function AppCommandPage() {
                   </div>
                 )}
 
+                <button
+                  onClick={() => setShowSimulatorModal(true)}
+                  className="w-full py-2 rounded-lg bg-amber-950/70 hover:bg-amber-900 border border-amber-600/60 text-amber-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Uji Simulasi Bara pada Titik Ini</span>
+                </button>
+
                 <Link
                   href={`/app/nodes/${selectedNode.id}`}
                   className="w-full py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
@@ -312,6 +328,14 @@ export default function AppCommandPage() {
           </div>
         </main>
       </div>
+
+      {/* In-Map Simulator Modal for Judges */}
+      <InMapSimulatorModal
+        isOpen={showSimulatorModal}
+        onClose={() => setShowSimulatorModal(false)}
+        onDataChanged={loadData}
+        initialNodeId={selectedNode?.id || "PK-04"}
+      />
     </div>
   );
 }

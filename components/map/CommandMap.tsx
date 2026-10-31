@@ -19,6 +19,7 @@ import {
   Navigation,
   ListFilter,
   LocateFixed,
+  Sparkles,
 } from "lucide-react";
 
 export interface MapNode {
@@ -52,6 +53,7 @@ interface CommandMapProps {
   onSelectNode?: (node: MapNode) => void;
   activeAreaId?: string;
   onSelectArea?: (areaId: string) => void;
+  onOpenSimulator?: () => void;
   spreadVector?: {
     origin: [number, number];
     directionDeg: number;
@@ -163,6 +165,7 @@ export function CommandMap({
   onSelectNode,
   activeAreaId = "a0000000-0000-0000-0000-000000000001",
   onSelectArea,
+  onOpenSimulator,
   spreadVector,
   wind = { speedKmh: 14.2, directionDeg: 220 },
 }: CommandMapProps) {
@@ -507,16 +510,46 @@ export function CommandMap({
 
       if (m.getSource("firms-hotspots")) {
         (m.getSource("firms-hotspots") as maplibregl.GeoJSONSource).setData(firmsGeoJSON);
+        if (m.getLayer("firms-radar")) m.setLayoutProperty("firms-radar", "visibility", "visible");
+        if (m.getLayer("firms-core")) m.setLayoutProperty("firms-core", "visibility", "visible");
+        if (m.getLayer("firms-label")) m.setLayoutProperty("firms-label", "visibility", "visible");
       } else {
         m.addSource("firms-hotspots", { type: "geojson", data: firmsGeoJSON });
+        // Outer glowing radar circle matching Lampiran 2
         m.addLayer({
-          id: "firms-circle",
+          id: "firms-radar",
           type: "circle",
           source: "firms-hotspots",
           paint: {
-            "circle-radius": 7,
+            "circle-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              3, 8,
+              6, 14,
+              10, 24
+            ],
+            "circle-color": "rgba(244, 63, 94, 0.22)",
+            "circle-stroke-width": 1.5,
+            "circle-stroke-color": "#FDA4AF",
+          },
+        });
+        // Inner intense core
+        m.addLayer({
+          id: "firms-core",
+          type: "circle",
+          source: "firms-hotspots",
+          paint: {
+            "circle-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              3, 3,
+              7, 4.5,
+              11, 6
+            ],
             "circle-color": "#E11D48",
-            "circle-stroke-width": 2,
+            "circle-stroke-width": 1.5,
             "circle-stroke-color": "#FFE4E6",
           },
         });
@@ -527,7 +560,7 @@ export function CommandMap({
           layout: {
             "text-field": ["get", "label"],
             "text-size": 9,
-            "text-offset": [0, 1.2],
+            "text-offset": [0, 1.4],
           },
           paint: {
             "text-color": "#FECDD3",
@@ -536,6 +569,10 @@ export function CommandMap({
           },
         });
       }
+    } else {
+      if (m.getLayer("firms-radar")) m.setLayoutProperty("firms-radar", "visibility", "none");
+      if (m.getLayer("firms-core")) m.setLayoutProperty("firms-core", "visibility", "none");
+      if (m.getLayer("firms-label")) m.setLayoutProperty("firms-label", "visibility", "none");
     }
   };
 
@@ -708,6 +745,16 @@ export function CommandMap({
           >
             <Compass className="w-4 h-4" />
           </button>
+
+          {onOpenSimulator && (
+            <button
+              onClick={onOpenSimulator}
+              className="p-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black border border-amber-500/50 transition-colors"
+              title="Buka Simulator Interaktif Dewan Juri"
+            >
+              <Sparkles className="w-4 h-4 text-amber-400 hover:text-black" />
+            </button>
+          )}
         </div>
 
         {/* Quick Area Jump Buttons (Pills) */}
@@ -751,6 +798,17 @@ export function CommandMap({
           >
             Semua Titik
           </button>
+
+          {onOpenSimulator && (
+            <button
+              onClick={onOpenSimulator}
+              className="px-2.5 py-1 text-[11px] font-mono rounded-lg backdrop-blur-md bg-amber-950/70 border border-amber-500/80 text-amber-300 hover:bg-amber-500 hover:text-slate-950 font-bold flex items-center gap-1.5 shadow-lg shadow-amber-950/40 transition-all active:scale-95"
+              title="Buka Simulator Dewan Juri langsung di atas Peta"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Simulator Juri</span>
+            </button>
+          )}
         </div>
 
         {/* Collapsible Legenda Button matching Lampiran 2 */}

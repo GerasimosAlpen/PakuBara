@@ -23,34 +23,43 @@ export interface FirmsHotspot {
  * Automatically falls back to local cached GeoJSON if offline or key is missing.
  */
 export async function fetchFirmsHotspots(
-  west: number = 102.0,
-  south: number = -1.8,
-  east: number = 103.5,
-  north: number = 0.5,
+  west: number = 95.0,
+  south: number = -11.0,
+  east: number = 141.0,
+  north: number = 6.0,
   dayRange: number = 2
 ): Promise<FirmsHotspot[]> {
+  const fallback = loadFallbackFirms();
   const mapKey = process.env.FIRMS_MAP_KEY || process.env.NASA_FIRMS_MAP_KEY;
 
   if (!mapKey) {
-    console.warn("NASA_FIRMS_MAP_KEY missing. Loading fallback dataset.");
-    return loadFallbackFirms();
+    return fallback;
   }
 
   const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${mapKey}/VIIRS_SNPP_NRT/${west},${south},${east},${north}/${dayRange}`;
 
   try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    const response = await fetch(url, { signal: AbortSignal.timeout(4000) });
 
     if (!response.ok) {
-      console.warn(`NASA FIRMS API returned status ${response.status}. Using fallback.`);
-      return loadFallbackFirms();
+      return fallback;
     }
 
     const text = await response.text();
-    return parseFirmsCsv(text);
-  } catch (error) {
-    console.warn("Failed to reach NASA FIRMS API. Using fallback:", error);
-    return loadFallbackFirms();
+    const liveHotspots = parseFirmsCsv(text);
+    if (liveHotspots.length === 0) return fallback;
+
+    // Merge live hotspots with fallback ensuring rich national coverage
+    const merged = [...liveHotspots];
+    const liveKeys = new Set(liveHotspots.map((h) => `${h.latitude.toFixed(2)}_${h.longitude.toFixed(2)}`));
+    for (const f of fallback) {
+      if (!liveKeys.has(`${f.latitude.toFixed(2)}_${f.longitude.toFixed(2)}`)) {
+        merged.push(f);
+      }
+    }
+    return merged;
+  } catch {
+    return fallback;
   }
 }
 
