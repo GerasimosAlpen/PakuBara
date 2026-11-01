@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { Logo } from "@/components/ui/Logo";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useRouter } from "next/navigation";
 import { Flame, Mail, ArrowRight, FlaskConical, ShieldCheck } from "lucide-react";
@@ -55,7 +56,7 @@ export default function LoginPage() {
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2 group mb-2">
-            <span className="font-bold text-lg tracking-tight text-stone-50">PakuBara</span>
+            <Logo height={40} />
           </Link>
           <h1 className="text-2xl font-bold tracking-tight text-stone-50">Masuk Posko Operasi</h1>
           <p className="text-xs text-stone-400">

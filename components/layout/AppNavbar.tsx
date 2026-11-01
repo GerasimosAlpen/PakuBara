@@ -7,6 +7,7 @@ import { Bell, ChevronDown, FlaskConical, Menu, X } from "lucide-react";
 import { NAV_ITEMS } from "./nav-items";
 import { useOpenAlerts } from "./useOpenAlerts";
 import { ThemeToggle } from "./ThemeToggle";
+import { Logo } from "@/components/ui/Logo";
 
 interface AreaOption {
   id: string;
@@ -64,8 +65,8 @@ export function AppNavbar({
           {navOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
         </button>
 
-        <Link href="/" className="font-bold text-lg tracking-tight text-stone-50 shrink-0">
-          PakuBara
+        <Link href="/" aria-label="PakuBara, ke beranda" className="flex items-center shrink-0">
+          <Logo height={30} />
         </Link>
 
         <div className="relative flex items-center gap-2 pl-3 sm:pl-5 border-l border-line min-w-0">
