@@ -22,24 +22,39 @@ export interface FonnteSendResult {
 }
 
 /**
- * Formats the standard 8-line emergency alert message for field responders.
+ * Formats the operational emergency alert message for field responders with full physics telemetry.
  */
 export function formatEmergencyAlertMessage(
   payload: WhatsAppAlertPayload,
   appUrl: string = process.env.NEXT_PUBLIC_APP_URL || "https://pakubara.vercel.app"
 ): string {
-  const nextTarget = payload.targetNeighborId ? ` -> ${payload.targetNeighborId}` : "";
+  const nextTarget = payload.targetNeighborId ? ` → ${payload.targetNeighborId}` : "";
   const alertLink = `${appUrl}/a/${payload.alertToken}`;
 
   return [
-    `🔥 PAKUBARA | BARA AKTIF`,
-    `Area: ${payload.areaName}`,
-    `Titik: ${payload.nodeId} (${payload.lat.toFixed(4)}, ${payload.lon.toFixed(4)})`,
-    `Kedalaman: ${payload.depthCm} cm | ${payload.tempC.toFixed(1)}°C, naik ${payload.rateCPerHour.toFixed(1)}°C/jam`,
-    `Arah: ${payload.directionText}${nextTarget}`,
-    `Perkiraan muncul: ±${payload.etaSurfaceHours} jam`,
-    `Saran: suntik air ${payload.waterRecommendationLiters}L di kedalaman ${payload.depthCm} cm pada ${payload.nodeId}`,
-    `Buka: ${alertLink}`,
+    `🚨 *PAKUBARA | SISTEM PERINGATAN DINI BARA GAMBUT*`,
+    `*PUSDALOPS BPBD & MANGGALA AGNI*`,
+    `━━━━━━━━━━━━━━━━━━━━━━`,
+    `⚠️ *STATUS: BARA AKTIF TERVERIFIKASI (SIAGA 1)*`,
+    `📍 *Area:* ${payload.areaName}`,
+    `📌 *Titik Sensor:* ${payload.nodeId} (${payload.lat.toFixed(4)}, ${payload.lon.toFixed(4)})`,
+    ``,
+    `📊 *TELEMETRI BAWAH PERMUKAAN:*`,
+    `• Kedalaman Bara: *${payload.depthCm} cm*`,
+    `• Suhu Inti: *${payload.tempC.toFixed(1)}°C* (Laju: +${payload.rateCPerHour.toFixed(1)}°C/jam)`,
+    `• Validasi: *Fusi Sinyal Aktif (Suhu + Tetangga Spasial + Gas CO)*`,
+    ``,
+    `🧭 *PREDIKSI ARAH & DINAMIKA RAMBATAN:*`,
+    `• Vektor Arah: *${payload.directionText}${nextTarget}*`,
+    `• Perkiraan Muncul Permukaan: *±${payload.etaSurfaceHours.toFixed(1)} jam*`,
+    ``,
+    `🎯 *PANDUAN OPERASIONAL REGU:*`,
+    `• Tindakan: *Suntik air ${payload.waterRecommendationLiters} Liter*`,
+    `• Kedalaman Penetrasi: *z* = ${payload.depthCm} cm* pada titik ${payload.nodeId}`,
+    ``,
+    `📲 *BUKA PETA & TINDAKAN LAPANGAN:*`,
+    `${alertLink}`,
+    `_(Navigasi GPS Google Maps 1-klik, konfirmasi menuju lokasi, & catat liter air)_`,
   ].join("\n");
 }
 
@@ -48,11 +63,13 @@ export function formatEmergencyAlertMessage(
  */
 export function formatResolvedMessage(nodeId: string, areaName: string): string {
   return [
-    `✅ PAKUBARA | TITIK KEMBALI NORMAL`,
-    `Area: ${areaName}`,
-    `Titik: ${nodeId}`,
-    `Status: Penanganan selesai, suhu tanah di bawah ambang waspada.`,
-    `Lahan memasuki fase stabilisasi pemantauan 72 jam.`,
+    `✅ *PAKUBARA | PENANGANAN SELESAI & TITIK STABIL*`,
+    `*PUSDALOPS BPBD & MANGGALA AGNI*`,
+    `━━━━━━━━━━━━━━━━━━━━━━`,
+    `📍 *Area:* ${areaName}`,
+    `📌 *Titik Sensor:* ${nodeId}`,
+    `🌡️ *Status:* Suhu tanah telah turun di bawah ambang batas bahaya (<35°C).`,
+    `🛡️ *Lahan Memasuki Fase:* Stabilisasi & pemantauan intensif 72 jam bebas bara.`,
   ].join("\n");
 }
 

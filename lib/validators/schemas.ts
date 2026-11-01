@@ -63,6 +63,7 @@ export const resolveAlertSchema = z.object({
   actor_id: z.string().uuid().optional(),
   status: z.enum(["resolved", "false_alarm"]),
   resolution_note: z.string().min(3),
+  target_phone: z.string().optional(),
 });
 
 export const createActionSchema = z.object({
