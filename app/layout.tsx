@@ -17,8 +17,11 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "PakuBara - Pusat Komando Pemantauan Bara Gambut & Logistik Air",
   description:
-    "Sistem presisi pemantauan bara api gambut bawah permukaan dan navigasi logistik air pasca-pemadaman karhutla.",
+    "Pusat komando untuk memantau bara gambut setelah api permukaan padam: titik, kedalaman, arah rambat, dan alert WhatsApp ke regu.",
 };
+
+// Menentukan tema sebelum cetak pertama supaya halaman tidak berkedip. Urutan: pilihan tersimpan, lalu preferensi sistem.
+const THEME_INIT = `(function(){try{var t=localStorage.getItem("pakubara.theme");var d=t?t==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;if(d)document.documentElement.classList.add("dark")}catch(e){}})()`;
 
 export default function RootLayout({
   children,
@@ -28,11 +31,13 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${inter.variable} ${jetbrainsMono.variable} dark h-full antialiased`}
+      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-[#121010] text-[#F5F5F4]">
-        {children}
-      </body>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
+      </head>
+      <body className="min-h-full flex flex-col bg-ink text-stone-100">{children}</body>
     </html>
   );
 }

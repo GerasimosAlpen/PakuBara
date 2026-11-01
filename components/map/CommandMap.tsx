@@ -3,6 +3,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+
+// Worker disajikan dari /public agar jalan di mode webpack (lihat public/maplibre).
+maplibregl.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
 import {
   Globe,
   Mountain,
@@ -19,7 +22,7 @@ import {
   Navigation,
   ListFilter,
   LocateFixed,
-  Sparkles,
+  FlaskConical,
 } from "lucide-react";
 
 export interface MapNode {
@@ -645,57 +648,62 @@ export function CommandMap({
   }, [activeAreaId]);
 
   return (
-    <div className="relative w-full h-full min-h-[500px] overflow-hidden rounded-xl border border-slate-800 bg-[#0B0F19]">
+    <div className="relative w-full h-full min-h-[500px] overflow-hidden bg-ink">
       {/* MapLibre WebGL Canvas Container */}
       <div ref={mapContainer} className="w-full h-full min-h-[500px]" />
 
       {/* Floating Icon Toolbar (Top Left) */}
       <div className="absolute top-3 left-3 z-10 flex flex-col items-start gap-2">
-        <div className="flex items-center gap-1 bg-[#111622]/95 backdrop-blur-md p-1.5 rounded-xl border border-slate-800/90 shadow-2xl">
+        <div className="flex items-center gap-1 bg-surface/95 p-1.5 rounded-xl border border-stone-800/90 ">
           <button
             onClick={cycleBasemap}
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg hover:bg-stone-800 text-stone-300 hover:text-stone-50 transition-colors"
             title={`Ganti Peta Dasar (${BASEMAPS[basemapKey].name})`}
+            aria-label={`Ganti Peta Dasar (${BASEMAPS[basemapKey].name})`}
           >
-            <Globe className="w-4 h-4 text-sky-400" />
+            <Globe className="w-4 h-4 text-orange-400" />
           </button>
 
           <button
             onClick={() => setShowBoundary(!showBoundary)}
             className={`p-1.5 rounded-lg transition-colors ${
-              showBoundary ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
+              showBoundary ? "bg-stone-800 text-stone-50" : "text-stone-400 hover:text-stone-50"
             }`}
             title="Batas Blok Konsesi Gambut"
+            aria-label="Batas Blok Konsesi Gambut"
           >
             <Building2 className="w-4 h-4 text-amber-400" />
           </button>
 
           <button
             onClick={() => flyToPaku()}
-            className="p-1.5 rounded-lg bg-sky-600/20 hover:bg-sky-600 text-sky-400 hover:text-white border border-sky-500/40 transition-colors"
+            className="p-1.5 rounded-lg bg-orange-600/20 hover:bg-ember-strong text-orange-400 hover:text-white border border-orange-500/40 transition-colors"
             title="Fokus ke Paku Sensor Wilayah Aktif"
+            aria-label="Fokus ke Paku Sensor Wilayah Aktif"
           >
-            <LocateFixed className="w-4 h-4 text-sky-400 hover:text-white" />
+            <LocateFixed className="w-4 h-4 text-orange-400 hover:text-stone-50" />
           </button>
 
           <button
             onClick={() => {
               map.current?.flyTo({ center: [118.0, -2.5], zoom: 4.8, pitch: 0, bearing: 0, duration: 1500 });
             }}
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg hover:bg-stone-800 text-stone-400 hover:text-stone-50 transition-colors"
             title="Lihat Seluruh Indonesia (Overview Nasional)"
+            aria-label="Lihat Seluruh Indonesia (Overview Nasional)"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
 
-          <div className="h-4 w-px bg-slate-800 mx-0.5" />
+          <div className="h-4 w-px bg-stone-800 mx-0.5" />
 
           <button
             onClick={() => setIs3D(!is3D)}
             className={`p-1.5 rounded-lg transition-colors ${
-              is3D ? "bg-sky-600 text-white font-bold" : "text-slate-400 hover:text-white"
+              is3D ? "bg-ember-strong text-white font-bold" : "text-stone-400 hover:text-white"
             }`}
             title="Perspektif 2D / 3D"
+            aria-label="Perspektif 2D / 3D"
           >
             <Box className="w-4 h-4" />
           </button>
@@ -703,9 +711,10 @@ export function CommandMap({
           <button
             onClick={() => setShowWind(!showWind)}
             className={`p-1.5 rounded-lg transition-colors ${
-              showWind ? "bg-slate-800 text-sky-300" : "text-slate-400 hover:text-white"
+              showWind ? "bg-stone-800 text-orange-300" : "text-stone-400 hover:text-stone-50"
             }`}
             title="Lapisan Arah Angin"
+            aria-label="Lapisan Arah Angin"
           >
             <Wind className="w-4 h-4" />
           </button>
@@ -713,9 +722,10 @@ export function CommandMap({
           <button
             onClick={() => setShowSpread(!showSpread)}
             className={`p-1.5 rounded-lg transition-colors ${
-              showSpread ? "bg-red-950/80 text-red-400 border border-red-700/60" : "text-slate-400 hover:text-white"
+              showSpread ? "bg-red-950/80 text-red-400 border border-red-700/60" : "text-stone-400 hover:text-stone-50"
             }`}
             title="Vektor Prediksi Arah Rambat"
+            aria-label="Vektor Prediksi Arah Rambat"
           >
             <Footprints className="w-4 h-4" />
           </button>
@@ -723,9 +733,10 @@ export function CommandMap({
           <button
             onClick={() => setShowHeatmap(!showHeatmap)}
             className={`p-1.5 rounded-lg transition-colors ${
-              showHeatmap ? "bg-amber-950/80 text-amber-400 border border-amber-700/60" : "text-slate-400 hover:text-white"
+              showHeatmap ? "bg-amber-950/80 text-amber-400 border border-amber-700/60" : "text-stone-400 hover:text-stone-50"
             }`}
             title="Heatmap Suhu Bawah Permukaan"
+            aria-label="Heatmap Suhu Bawah Permukaan"
           >
             <Flame className="w-4 h-4" />
           </button>
@@ -734,14 +745,16 @@ export function CommandMap({
             onClick={flyToActiveEmber}
             className="p-1.5 rounded-lg hover:bg-red-900/60 text-red-400 hover:text-red-300 transition-colors"
             title="Lompat ke Titik Bara Aktif"
+            aria-label="Lompat ke Titik Bara Aktif"
           >
             <Bell className="w-4 h-4 animate-bounce" />
           </button>
 
           <button
             onClick={resetNorth}
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg hover:bg-stone-800 text-stone-400 hover:text-stone-50 transition-colors"
             title="Reset Arah Utara (North Up)"
+            aria-label="Reset Arah Utara (North Up)"
           >
             <Compass className="w-4 h-4" />
           </button>
@@ -751,8 +764,9 @@ export function CommandMap({
               onClick={onOpenSimulator}
               className="p-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black border border-amber-500/50 transition-colors"
               title="Buka Simulator Interaktif Dewan Juri"
+              aria-label="Buka Simulator Interaktif Dewan Juri"
             >
-              <Sparkles className="w-4 h-4 text-amber-400 hover:text-black" />
+              <FlaskConical className="w-4 h-4 text-amber-400 hover:text-black" />
             </button>
           )}
         </div>
@@ -764,10 +778,10 @@ export function CommandMap({
               onSelectArea?.("a0000000-0000-0000-0000-000000000001");
               flyToPaku("a0000000-0000-0000-0000-000000000001");
             }}
-            className={`px-2.5 py-1 text-[11px] font-mono rounded-lg backdrop-blur-md border transition-colors ${
+            className={`px-2.5 py-1 text-xs font-mono rounded-lg border transition-colors ${
               activeAreaId === "a0000000-0000-0000-0000-000000000001"
-                ? "bg-slate-800 text-sky-300 border-sky-500/60 font-semibold shadow-md shadow-sky-950/40"
-                : "bg-[#111622]/90 text-slate-300 border-slate-800/90 hover:bg-slate-800 hover:text-white"
+                ? "bg-stone-800 text-orange-300 border-orange-500/60 font-semibold  "
+                : "bg-surface/90 text-stone-300 border-stone-800/90 hover:bg-stone-800 hover:text-stone-50"
             }`}
           >
             Riau (PK-01..08)
@@ -777,10 +791,10 @@ export function CommandMap({
               onSelectArea?.("a0000000-0000-0000-0000-000000000003");
               flyToPaku("a0000000-0000-0000-0000-000000000003");
             }}
-            className={`px-2.5 py-1 text-[11px] font-mono rounded-lg backdrop-blur-md border transition-colors ${
+            className={`px-2.5 py-1 text-xs font-mono rounded-lg border transition-colors ${
               activeAreaId === "a0000000-0000-0000-0000-000000000003"
-                ? "bg-slate-800 text-amber-300 border-amber-500/60 font-semibold shadow-md shadow-amber-950/40"
-                : "bg-[#111622]/90 text-slate-300 border-slate-800/90 hover:bg-slate-800 hover:text-white"
+                ? "bg-stone-800 text-amber-300 border-amber-500/60 font-semibold  "
+                : "bg-surface/90 text-stone-300 border-stone-800/90 hover:bg-stone-800 hover:text-stone-50"
             }`}
           >
             Kalimantan KHG (PK-K01..K08)
@@ -790,10 +804,10 @@ export function CommandMap({
               onSelectArea?.("all");
               flyToPaku("all");
             }}
-            className={`px-2.5 py-1 text-[11px] font-mono rounded-lg backdrop-blur-md border transition-colors ${
+            className={`px-2.5 py-1 text-xs font-mono rounded-lg border transition-colors ${
               activeAreaId === "all"
-                ? "bg-slate-800 text-emerald-300 border-emerald-500/60 font-semibold shadow-md shadow-emerald-950/40"
-                : "bg-[#111622]/90 text-slate-300 border-slate-800/90 hover:bg-slate-800 hover:text-white"
+                ? "bg-stone-800 text-emerald-300 border-emerald-500/60 font-semibold  "
+                : "bg-surface/90 text-stone-300 border-stone-800/90 hover:bg-stone-800 hover:text-stone-50"
             }`}
           >
             Semua Titik
@@ -802,10 +816,11 @@ export function CommandMap({
           {onOpenSimulator && (
             <button
               onClick={onOpenSimulator}
-              className="px-2.5 py-1 text-[11px] font-mono rounded-lg backdrop-blur-md bg-amber-950/70 border border-amber-500/80 text-amber-300 hover:bg-amber-500 hover:text-slate-950 font-bold flex items-center gap-1.5 shadow-lg shadow-amber-950/40 transition-all active:scale-95"
+              className="px-2.5 py-1 text-xs font-mono rounded-lg bg-amber-950/70 border border-amber-500/80 text-amber-300 hover:bg-amber-500 hover:text-stone-950 font-bold flex items-center gap-1.5   transition-all active:scale-95"
               title="Buka Simulator Dewan Juri langsung di atas Peta"
+              aria-label="Buka Simulator Dewan Juri langsung di atas Peta"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <FlaskConical className="w-3.5 h-3.5 text-amber-400" />
               <span>Simulator Juri</span>
             </button>
           )}
@@ -814,52 +829,52 @@ export function CommandMap({
         {/* Collapsible Legenda Button matching Lampiran 2 */}
         <button
           onClick={() => setShowLegend(!showLegend)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-[#111622]/95 backdrop-blur-md text-slate-200 border border-slate-800/90 shadow-xl hover:bg-slate-800 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-surface/95 text-stone-200 border border-stone-800/90  hover:bg-stone-800 transition-colors"
         >
-          <ListFilter className="w-3.5 h-3.5 text-slate-400" />
+          <ListFilter className="w-3.5 h-3.5 text-stone-400" />
           <span>Legenda</span>
         </button>
 
         {/* Expanded Legend Card (Only shown when user opens it) */}
         {showLegend && (
-          <div className="bg-[#111622]/95 backdrop-blur-md p-3 rounded-xl border border-slate-800 shadow-2xl text-[11px] flex flex-col gap-1.5 w-64 animate-fadeIn">
-            <div className="font-semibold text-slate-300 text-[10px] uppercase tracking-wider mb-0.5">
+          <div className="bg-surface/95 p-3 rounded-xl border border-stone-800  text-xs flex flex-col gap-1.5 w-64 animate-fadeIn">
+            <div className="font-semibold text-stone-300 text-xs mb-0.5">
               Legenda Simbol Peta
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-red-600 border border-white" />
-              <span className="text-slate-200 font-medium">Bara Aktif (&ge;60°C atau laju &ge;5°C/j)</span>
+              <span className="text-stone-200 font-medium">Bara Aktif (&ge;60°C atau laju &ge;5°C/j)</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-              <span className="text-slate-300">Waspada (45-59°C)</span>
+              <span className="text-stone-300">Waspada (45-59°C)</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-              <span className="text-slate-300">Normal (&lt;45°C)</span>
+              <span className="text-stone-300">Normal (&lt;45°C)</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-rose-600 border border-rose-300" />
-              <span className="text-slate-300">Hotspot Satelit NASA FIRMS</span>
+              <span className="text-stone-300">Hotspot Satelit NASA FIRMS</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-4 h-0.5 bg-red-500 border-b border-red-500 border-dashed" />
-              <span className="text-slate-300">Vektor Prediksi Arah Rambat &amp; ETA</span>
+              <span className="text-stone-300">Vektor Prediksi Arah Rambat &amp; ETA</span>
             </div>
           </div>
         )}
       </div>
 
       {/* Wind & Weather Indicator Badge (Top Right) - Matching Lampiran 2 */}
-      <div className="absolute top-3 right-14 bg-[#111622]/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800/90 shadow-2xl flex items-center gap-2 z-10">
-        <Navigation className="w-3.5 h-3.5 text-sky-400 rotate-45 shrink-0" />
-        <div className="text-[11px] font-mono text-slate-200">
+      <div className="absolute top-3 right-14 bg-surface/95 px-3 py-1.5 rounded-xl border border-stone-800/90  flex items-center gap-2 z-10">
+        <Navigation className="w-3.5 h-3.5 text-orange-400 rotate-45 shrink-0" />
+        <div className="text-xs font-mono text-stone-200">
           Angin di 1.234°S 102.678°E: ke Timur Laut (45°) | {wind.speedKmh} km/jam · RH 88% · 31°C
         </div>
       </div>
 
       {/* Bottom Right Watermark Attribution - Matching Lampiran 2 */}
-      <div className="absolute bottom-2 right-3 text-[10px] font-mono text-slate-400/80 bg-slate-950/70 px-2 py-0.5 rounded pointer-events-none z-10">
+      <div className="absolute bottom-2 right-3 text-xs font-mono text-stone-400/80 bg-stone-950/70 px-2 py-0.5 rounded pointer-events-none z-10">
         OpenMapTiles Data from OpenStreetMap
       </div>
     </div>

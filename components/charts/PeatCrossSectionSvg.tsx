@@ -30,23 +30,30 @@ export function PeatCrossSectionSvg({
   };
 
   return (
-    <div className="flex flex-col items-center bg-[#181414] border border-[#2D2424] rounded-xl p-4 w-full">
+    <div className="flex flex-col items-center bg-surface border border-line rounded-xl p-4 w-full">
       <div className="flex justify-between items-center w-full mb-3">
         <div>
-          <h4 className="text-sm font-semibold text-white tracking-wide">
+          <h4 className="text-sm font-semibold text-stone-50 tracking-wide">
             Penampang Vertikal Gambut (Profil Kedalaman)
           </h4>
-          <p className="text-xs text-neutral-400">
+          <p className="text-xs text-stone-400">
             Sensor paku mengukur 3 kedalaman kritis: 20 cm, 50 cm, 100 cm
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-          <span className="text-xs font-mono text-red-400 font-medium">Bara Terdeteksi</span>
-        </div>
+        {Math.max(t20, t50, t100) >= 60 ? (
+          <div className="flex items-center gap-2" role="status">
+            <span className="inline-block w-2.5 h-2.5 rounded-full bg-crit" aria-hidden="true" />
+            <span className="text-xs font-medium text-red-300">Bara terdeteksi</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2" role="status">
+            <span className="inline-block w-2.5 h-2.5 rounded-full bg-ok" aria-hidden="true" />
+            <span className="text-xs font-medium text-stone-300">Suhu normal</span>
+          </div>
+        )}
       </div>
 
-      <div className="relative w-full max-w-lg aspect-[4/3] bg-[#121010] rounded-lg overflow-hidden border border-[#2D2424]">
+      <div className="relative w-full max-w-lg aspect-[4/3] bg-[#121010] rounded-lg overflow-hidden border border-line">
         <svg viewBox="0 0 400 300" className="w-full h-full select-none">
           <defs>
             {/* Linear gradients for soil stratigraphy */}
@@ -140,7 +147,6 @@ export function PeatCrossSectionSvg({
             fill={getTempColor(t50)}
             stroke="#FEF08A"
             strokeWidth="2"
-            className="animate-pulse"
           />
           <text x="215" y="124" fill="#FEF08A" fontSize="12" fontWeight="bold" fontFamily="monospace">
             50 cm: {t50}°C (Pusat Bara)
@@ -175,8 +181,8 @@ export function PeatCrossSectionSvg({
       </div>
 
       {interactive && (
-        <div className="w-full mt-4 bg-[#121010] p-3 rounded-lg border border-[#2D2424]">
-          <div className="flex justify-between text-xs text-neutral-300 mb-1">
+        <div className="w-full mt-4 bg-ink p-3 rounded-lg border border-line">
+          <div className="flex justify-between text-xs text-stone-300 mb-1">
             <span>Kedalaman Injeksi Nozzle:</span>
             <span className="font-mono text-amber-400 font-bold">{selectedDepth} cm</span>
           </div>
@@ -187,9 +193,9 @@ export function PeatCrossSectionSvg({
             step="5"
             value={selectedDepth}
             onChange={(e) => setSelectedDepth(Number(e.target.value))}
-            className="w-full h-1.5 bg-[#2D2424] rounded-lg appearance-none cursor-pointer accent-[#EA580C]"
+            className="w-full h-1.5 bg-line rounded-lg appearance-none cursor-pointer accent-[#EA580C]"
           />
-          <div className="flex justify-between text-[10px] text-neutral-500 mt-1">
+          <div className="flex justify-between text-xs text-stone-400 mt-1">
             <span>Dangkal (10 cm)</span>
             <span>Optimal Bara ({highlightDepth} cm)</span>
             <span>Dalam (100 cm)</span>

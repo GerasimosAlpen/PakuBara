@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef } from "react";
 import * as echarts from "echarts";
+import { useIsDark } from "@/components/layout/ThemeToggle";
+import { chartColors } from "./chart-theme";
 
 interface RiskFactorBarsProps {
   factors?: {
@@ -17,11 +19,20 @@ export function RiskFactorBars({
 }: RiskFactorBarsProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
+  const isDark = useIsDark();
+  const themeRef = useRef(isDark);
 
   useEffect(() => {
+    const c = chartColors(isDark);
     if (!chartRef.current) return;
+    if (chartInstance.current && themeRef.current !== isDark) {
+      chartInstance.current.dispose();
+      chartInstance.current = null;
+    }
+    themeRef.current = isDark;
+
     if (!chartInstance.current) {
-      chartInstance.current = echarts.init(chartRef.current, "dark");
+      chartInstance.current = echarts.init(chartRef.current, isDark ? "dark" : undefined);
     }
 
     const categories = [
@@ -43,9 +54,9 @@ export function RiskFactorBars({
       tooltip: {
         trigger: "axis",
         axisPointer: { type: "shadow" },
-        backgroundColor: "#181414",
-        borderColor: "#3D3030",
-        textStyle: { color: "#F3F4F6", fontSize: 11 },
+        backgroundColor: c.tooltipBg,
+        borderColor: c.tooltipBorder,
+        textStyle: { color: c.text, fontSize: 11 },
         formatter: "{b}: {c}% kontribusi risiko",
       },
       grid: {
@@ -57,14 +68,14 @@ export function RiskFactorBars({
       xAxis: {
         type: "value",
         max: 100,
-        axisLabel: { color: "#737373", fontSize: 10, formatter: "{value}%" },
-        splitLine: { lineStyle: { color: "#241D1D" } },
+        axisLabel: { color: c.faint, fontSize: 10, formatter: "{value}%" },
+        splitLine: { lineStyle: { color: c.grid } },
       },
       yAxis: {
         type: "category",
         data: categories,
-        axisLine: { lineStyle: { color: "#2D2424" } },
-        axisLabel: { color: "#A3A3A3", fontSize: 10 },
+        axisLine: { lineStyle: { color: c.axis } },
+        axisLabel: { color: c.muted, fontSize: 10 },
       },
       series: [
         {
@@ -89,11 +100,11 @@ export function RiskFactorBars({
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [factors]);
+  }, [factors, isDark]);
 
   return (
-    <div className="w-full bg-[#181414] border border-[#2D2424] rounded-xl p-4">
-      <h4 className="text-sm font-semibold text-white mb-2">Dekomposisi Faktor Prioritas Siaga</h4>
+    <div className="w-full bg-surface border border-line rounded-xl p-4">
+      <h4 className="text-sm font-semibold text-stone-50 mb-2">Dekomposisi Faktor Prioritas Siaga</h4>
       <div ref={chartRef} className="w-full h-48" />
     </div>
   );
