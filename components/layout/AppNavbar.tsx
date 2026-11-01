@@ -66,7 +66,7 @@ export function AppNavbar({
         </button>
 
         <Link href="/" aria-label="PakuBara, ke beranda" className="flex items-center shrink-0">
-          <Logo height={30} />
+          <Logo height={36} />
         </Link>
 
         <div className="relative flex items-center gap-2 pl-3 sm:pl-5 border-l border-line min-w-0">

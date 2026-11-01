@@ -40,7 +40,7 @@ export default function LandingPage() {
           aria-label="Utama"
         >
           <Link href="/" aria-label="PakuBara, ke beranda" className="flex items-center">
-            <Logo height={34} />
+            <Logo height={42} />
           </Link>
           <div className="flex items-center gap-1 sm:gap-3">
             <ThemeToggle />

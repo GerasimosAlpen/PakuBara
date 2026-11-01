@@ -56,7 +56,7 @@ export default function LoginPage() {
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2 group mb-2">
-            <Logo height={40} />
+            <Logo height={56} />
           </Link>
           <h1 className="text-2xl font-bold tracking-tight text-stone-50">Masuk Posko Operasi</h1>
           <p className="text-xs text-stone-400">
