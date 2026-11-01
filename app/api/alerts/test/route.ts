@@ -65,8 +65,8 @@ export async function POST(req: NextRequest) {
           {
             success: false,
             error:
-              result.providerResponse?.reason ||
-              result.providerResponse?.message ||
+              (result.providerResponse as any)?.reason ||
+              (result.providerResponse as any)?.message ||
               "Gagal mengirim pesan WhatsApp via Fonnte API",
             details: result,
           },

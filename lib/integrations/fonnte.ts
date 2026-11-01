@@ -18,7 +18,7 @@ export interface FonnteSendResult {
   success: boolean;
   status: "sent" | "queued" | "failed";
   messageText: string;
-  providerResponse?: unknown;
+  providerResponse?: Record<string, any>;
 }
 
 /**
