@@ -11,8 +11,10 @@ import {
   Play,
   RotateCcw,
   CheckCircle2,
+  TriangleAlert,
   Sliders,
 } from "lucide-react";
+import { apiErrorMessage } from "@/lib/api-error";
 
 interface InMapSimulatorModalProps {
   isOpen: boolean;
@@ -23,28 +25,28 @@ interface InMapSimulatorModalProps {
 
 const SCENARIOS = [
   {
-    id: "bara_merambat",
+    id: "spread_northeast",
     name: "Skenario 1: Bara Merambat Bawah Permukaan",
     badge: "Fusi 3/3 Sinyal (Valid)",
     badgeColor: "text-red-400 bg-red-950/60 border-red-800/60",
     desc: "Suhu PK-04 melonjak 92°C, probe tetangga PK-05 naik 54°C, tiang gas GS-01 185 ppm. Status AKTIF dan vektor rambat muncul.",
   },
   {
-    id: "alarm_palsu_co",
+    id: "false_alarm_co_only",
     name: "Skenario 2: Filtrasi Alarm Palsu (Genset Patroli)",
     badge: "Ditolak (1 Sinyal)",
     badgeColor: "text-amber-400 bg-amber-950/60 border-amber-800/60",
     desc: "Tiang gas GS-02 naik 120 ppm CO akibat knalpot, tapi suhu tanah tetap 30°C. Sistem menolak alarm, status tetap Normal.",
   },
   {
-    id: "paku_mati_baterai",
+    id: "battery_dead",
     name: "Skenario 3: Deteksi Node Offline & Baterai Kritis",
     badge: "Pengawasan Terisolasi",
     badgeColor: "text-orange-400 bg-orange-950/60 border-orange-800/60",
     desc: "PK-07 drop ke bawah 3.2V dan tidak kirim denyut >30 menit. Node ditandai OFFLINE pada peta.",
   },
   {
-    id: "pemulihan_area",
+    id: "area_recovery",
     name: "Skenario 4: Pemadaman Sukses & Rantai Hari Aman",
     badge: "Permen LHK P.32/2016",
     badgeColor: "text-emerald-400 bg-emerald-950/60 border-emerald-800/60",
@@ -63,6 +65,7 @@ export function InMapSimulatorModal({
   const [coPpm, setCoPpm] = useState<number>(210);
   const [loading, setLoading] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastOk, setToastOk] = useState<boolean>(true);
 
   if (!isOpen) return null;
 
@@ -77,13 +80,19 @@ export function InMapSimulatorModal({
       });
       const data = await res.json();
       if (data.success) {
-        setToastMessage(`Skenario "${data.scenario?.name || scId}" berhasil diterapkan!`);
+        setToastOk(true);
+        setToastMessage(
+          `Skenario "${data.scenario || scId}" berhasil diterapkan.` +
+            (data.alert_id && !data.whatsapp_sent ? " WhatsApp tidak terkirim, periksa token dan nomor Fonnte." : "")
+        );
         onDataChanged();
       } else {
-        setToastMessage(`Gagal: ${data.error || "Gagal menerapkan skenario"}`);
+        setToastOk(false);
+        setToastMessage(`Gagal: ${apiErrorMessage(data.error, "Gagal menerapkan skenario")}`);
       }
     } catch (err) {
-      setToastMessage(`Error: ${String(err)}`);
+      setToastOk(false);
+      setToastMessage(`Tidak bisa menghubungi server: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
     }
@@ -104,13 +113,16 @@ export function InMapSimulatorModal({
       });
       const data = await res.json();
       if (data.success) {
-        setToastMessage(`Denyut suhu ${targetTemp}°C & CO ${coPpm} ppm dikirim ke ${selectedNode}!`);
+        setToastOk(true);
+        setToastMessage(`Denyut suhu ${targetTemp}°C & CO ${coPpm} ppm dikirim ke ${selectedNode}.`);
         onDataChanged();
       } else {
-        setToastMessage(`Gagal: ${data.error}`);
+        setToastOk(false);
+        setToastMessage(`Gagal: ${apiErrorMessage(data.error, "respons server tidak dikenal")}`);
       }
     } catch (err) {
-      setToastMessage(`Error: ${String(err)}`);
+      setToastOk(false);
+      setToastMessage(`Tidak bisa menghubungi server: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
     }
@@ -145,8 +157,19 @@ export function InMapSimulatorModal({
         {/* Modal Body */}
         <div className="p-5 overflow-y-auto space-y-4 text-xs">
           {toastMessage && (
-            <div className="p-3 rounded-xl bg-emerald-950/50 border border-emerald-600/60 text-emerald-300 flex items-center gap-2 font-mono">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+            <div
+              role={toastOk ? "status" : "alert"}
+              className={`p-3 rounded-xl flex items-center gap-2 border ${
+                toastOk
+                  ? "bg-emerald-950/50 border-emerald-600/60 text-emerald-300"
+                  : "bg-red-950/50 border-red-600/60 text-red-300"
+              }`}
+            >
+              {toastOk ? (
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" aria-hidden="true" />
+              ) : (
+                <TriangleAlert className="w-4 h-4 shrink-0 text-red-400" aria-hidden="true" />
+              )}
               <span>{toastMessage}</span>
             </div>
           )}

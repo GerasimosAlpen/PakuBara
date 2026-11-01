@@ -11,10 +11,12 @@ import {
   BatteryCharging,
   Droplets,
   CheckCircle2,
+  TriangleAlert,
   ArrowRight,
   Sliders,
 } from "lucide-react";
 import { PeatCrossSectionSvg } from "@/components/charts/PeatCrossSectionSvg";
+import { apiErrorMessage } from "@/lib/api-error";
 
 interface Scenario {
   id: string;
@@ -25,25 +27,25 @@ interface Scenario {
 
 const SCENARIOS: Scenario[] = [
   {
-    id: "bara_merambat",
+    id: "spread_northeast",
     name: "Skenario 1: Bara Merambat Bawah Permukaan",
     description: "Suhu PK-04 melonjak ke 92°C, probe tetangga PK-05 mulai naik ke 54°C, tiang gas GS-01 mendeteksi 185 ppm CO.",
     expected_outcome: "Sistem memvalidasi fusi 3 dari 3 sinyal, status AKTIF, kalkulasi vektor arah Timur Laut, ETA 11.9 jam.",
   },
   {
-    id: "alarm_palsu_co",
+    id: "false_alarm_co_only",
     name: "Skenario 2: Filtrasi Alarm Palsu Asap Genset",
     description: "Tiang gas GS-02 mendeteksi lonjakan gas CO 120 ppm akibat knalpot genset patroli, namun suhu paku tanah PK-02 dan PK-03 tetap 30°C.",
     expected_outcome: "Sistem menolak alarm karena hanya 1 dari 3 sinyal yang terpenuhi. Status tetap Normal.",
   },
   {
-    id: "paku_mati_baterai",
+    id: "battery_dead",
     name: "Skenario 3: Deteksi Node Offline & Baterai Kritis",
     description: "Node PK-07 mengalami penurunan voltase baterai di bawah 3.2V dan tidak mengirimkan denyut selama lebih dari 30 menit.",
     expected_outcome: "Node ditandai OFFLINE pada peta komando. Tetangga PK-01 beralih ke mode pengawasan terisolasi.",
   },
   {
-    id: "pemulihan_area",
+    id: "area_recovery",
     name: "Skenario 4: Pemadaman Sukses & Rantai Hari Aman",
     description: "Regu Manggala Agni melakukan injeksi nozzle 800 Liter air ke kedalaman 50 cm. Suhu turun kembali ke 32°C.",
     expected_outcome: "Alert ditandai Resolved, status kembali Normal, sistem memulai perhitungan rantai hari aman wilayah (Permen LHK).",
@@ -51,12 +53,13 @@ const SCENARIOS: Scenario[] = [
 ];
 
 export default function DemoPage() {
-  const [selectedScenario, setSelectedScenario] = useState<string>("bara_merambat");
+  const [selectedScenario, setSelectedScenario] = useState<string>("spread_northeast");
   const [targetTemp, setTargetTemp] = useState<number>(95);
   const [coPpm, setCoPpm] = useState<number>(210);
   const [testPhone, setTestPhone] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [resultMessage, setResultMessage] = useState<string | null>(null);
+  const [resultOk, setResultOk] = useState<boolean>(true);
   const [currentT50, setCurrentT50] = useState<number>(87.3);
 
   const handleApplyScenario = async (scId: string) => {
@@ -71,17 +74,23 @@ export default function DemoPage() {
       const data = await res.json();
       if (data.success) {
         setSelectedScenario(scId);
-        setResultMessage(`Skenario "${data.scenario.name}" berhasil diterapkan!`);
-        if (scId === "bara_merambat") {
+        setResultOk(true);
+        setResultMessage(
+          `Skenario "${data.scenario}" berhasil diterapkan.` +
+            (data.alert_id && !data.whatsapp_sent ? " WhatsApp tidak terkirim, periksa token dan nomor Fonnte." : "")
+        );
+        if (scId === "spread_northeast") {
           setCurrentT50(92.0);
-        } else if (scId === "pemulihan_area") {
+        } else if (scId === "area_recovery") {
           setCurrentT50(32.0);
         }
       } else {
-        setResultMessage(`Gagal menerapkan skenario: ${data.error}`);
+        setResultOk(false);
+        setResultMessage(`Gagal menerapkan skenario: ${apiErrorMessage(data.error, "respons server tidak dikenal")}`);
       }
     } catch (err) {
-      setResultMessage(`Error: ${String(err)}`);
+      setResultOk(false);
+      setResultMessage(`Tidak bisa menghubungi server: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
     }
@@ -103,12 +112,15 @@ export default function DemoPage() {
       const data = await res.json();
       if (data.success) {
         setCurrentT50(targetTemp);
+        setResultOk(true);
         setResultMessage(data.message);
       } else {
-        setResultMessage(`Gagal: ${data.error}`);
+        setResultOk(false);
+        setResultMessage(`Gagal: ${apiErrorMessage(data.error, "respons server tidak dikenal")}`);
       }
     } catch (err) {
-      setResultMessage(`Error: ${String(err)}`);
+      setResultOk(false);
+      setResultMessage(`Tidak bisa menghubungi server: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
     }
@@ -122,10 +134,15 @@ export default function DemoPage() {
       const data = await res.json();
       if (data.success) {
         setCurrentT50(87.3);
+        setResultOk(true);
         setResultMessage(data.message);
+      } else {
+        setResultOk(false);
+        setResultMessage(`Gagal mereset simulasi: ${apiErrorMessage(data.error, "respons server tidak dikenal")}`);
       }
     } catch (err) {
-      setResultMessage(`Error: ${String(err)}`);
+      setResultOk(false);
+      setResultMessage(`Tidak bisa menghubungi server: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
     }
@@ -134,6 +151,7 @@ export default function DemoPage() {
   const handleSendTestWa = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!testPhone) {
+      setResultOk(false);
       setResultMessage("Nomor WhatsApp wajib diisi (misal: 628123456789)");
       return;
     }
@@ -147,12 +165,15 @@ export default function DemoPage() {
       });
       const data = await res.json();
       if (data.success) {
+        setResultOk(true);
         setResultMessage(data.message);
       } else {
-        setResultMessage(`Gagal kirim WhatsApp: ${data.error}`);
+        setResultOk(false);
+        setResultMessage(`Gagal kirim WhatsApp: ${apiErrorMessage(data.error, "respons server tidak dikenal")}`);
       }
     } catch (err) {
-      setResultMessage(`Error: ${String(err)}`);
+      setResultOk(false);
+      setResultMessage(`Tidak bisa menghubungi server: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
     }
@@ -213,8 +234,17 @@ export default function DemoPage() {
 
         {/* Notifikasi feedback aksi */}
         {resultMessage && (
-          <div className="p-3.5 rounded-xl bg-raised border border-emerald-700/60 text-emerald-300 text-xs flex items-center gap-2.5 animate-fadeIn">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <div
+            role={resultOk ? "status" : "alert"}
+            className={`p-3.5 rounded-xl bg-raised border text-xs flex items-center gap-2.5 animate-fadeIn ${
+              resultOk ? "border-emerald-700/60 text-emerald-300" : "border-red-600/60 text-red-300"
+            }`}
+          >
+            {resultOk ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" aria-hidden="true" />
+            ) : (
+              <TriangleAlert className="w-4 h-4 text-red-400 shrink-0" aria-hidden="true" />
+            )}
             <span>{resultMessage}</span>
           </div>
         )}
@@ -228,28 +258,31 @@ export default function DemoPage() {
             {SCENARIOS.map((sc) => {
               const isSelected = selectedScenario === sc.id;
               return (
-                <div
+                <button
+                  type="button"
                   key={sc.id}
                   onClick={() => handleApplyScenario(sc.id)}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                  aria-pressed={isSelected}
+                  disabled={loading}
+                  className={`w-full text-left p-4 rounded-xl border  transition-all ${
                     isSelected
                       ? "bg-raised border-ember  "
                       : "bg-surface border-line hover:border-line-strong"
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-2">
+                  <span className="flex items-center justify-between mb-2">
                     <span className="text-xs font-bold text-stone-50">{sc.name}</span>
                     {isSelected && (
                       <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-ember-strong text-white">
                         Aktif
                       </span>
                     )}
-                  </div>
-                  <p className="text-xs text-stone-400 leading-relaxed">{sc.description}</p>
-                  <div className="mt-3 pt-2.5 border-t border-line text-xs text-amber-400/90 font-mono">
+                  </span>
+                  <span className="block text-xs text-stone-400 leading-relaxed">{sc.description}</span>
+                  <span className="block mt-3 pt-2.5 border-t border-line text-xs text-amber-400/90 font-mono">
                     Hasil: {sc.expected_outcome}
-                  </div>
-                </div>
+                  </span>
+                </button>
               );
             })}
           </div>

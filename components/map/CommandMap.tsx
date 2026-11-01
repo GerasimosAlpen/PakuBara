@@ -658,7 +658,7 @@ export function CommandMap({
       <div ref={mapContainer} className="w-full h-full min-h-[500px]" />
 
       {/* Floating Icon Toolbar (Top Left) */}
-      <div className="absolute top-3 left-3 z-10 flex flex-col items-start gap-2">
+      <div className="absolute top-3 left-3 z-10 flex flex-col items-start gap-2 max-w-[calc(100%-4.5rem)]">
         <div className="flex items-center gap-1 bg-surface/95 p-1.5 rounded-xl border border-stone-800/90 ">
           <button
             onClick={cycleBasemap}
@@ -868,17 +868,17 @@ export function CommandMap({
             </div>
           </div>
         )}
-      </div>
 
-      {/* Wind & Weather Indicator Badge (Top Right) - Matching Lampiran 2 */}
-      <div className="hidden @2xl:flex absolute top-3 right-14 bg-surface/95 px-3 py-1.5 rounded-xl border border-line items-center gap-2 z-10">
-        <Navigation
-          className="w-3.5 h-3.5 text-accent shrink-0"
-          style={{ transform: `rotate(${windToDeg - 45}deg)` }}
-          aria-hidden="true"
-        />
-        <div className="text-xs font-mono text-stone-200">
-          Angin ke {windToLabel} ({Math.round(windToDeg)}°), {wind.speedKmh} km/jam
+        {/* Badge angin: bagian dari tumpukan toolbar, jadi tidak pernah menimpa kontrol lain */}
+        <div className="flex items-center gap-2 bg-surface/95 px-3 py-1.5 rounded-xl border border-line">
+          <Navigation
+            className="w-3.5 h-3.5 text-accent shrink-0"
+            style={{ transform: `rotate(${windToDeg - 45}deg)` }}
+            aria-hidden="true"
+          />
+          <div className="text-xs font-mono text-stone-200">
+            Angin ke {windToLabel} ({Math.round(windToDeg)}°), {wind.speedKmh} km/jam
+          </div>
         </div>
       </div>
 

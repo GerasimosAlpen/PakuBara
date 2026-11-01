@@ -345,7 +345,7 @@ export default function AppCommandPage() {
             {/* Panel KPI melayang (desktop) */}
             <section
               aria-label="Ringkasan wilayah"
-              className="hidden 2xl:block absolute top-32 left-3 z-20 w-56 bg-panel backdrop-blur-md border border-line rounded-lg p-4"
+              className="hidden 2xl:block absolute top-52 left-3 z-20 w-56 bg-panel backdrop-blur-md border border-line rounded-lg p-4"
             >
               {renderKpis("panel")}
             </section>

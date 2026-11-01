@@ -141,16 +141,18 @@ export default function RiskPriorityPage() {
                 {RISK_CELLS.map((cell) => {
                   const isSelected = selectedCell.id === cell.id;
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={cell.id}
                       onClick={() => setSelectedCell(cell)}
-                      className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                      aria-pressed={isSelected}
+                      className={`w-full text-left p-3.5 rounded-xl border  transition-all ${
                         isSelected
                           ? "bg-raised border-ember  "
                           : "bg-surface border-line hover:border-line-strong"
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-1">
+                      <span className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold font-mono text-stone-50">{cell.id}</span>
                         <span
                           className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
@@ -163,12 +165,12 @@ export default function RiskPriorityPage() {
                         >
                           Skor {cell.score}
                         </span>
-                      </div>
-                      <div className="text-xs text-stone-300 font-medium truncate">{cell.name}</div>
-                      <div className="text-xs text-stone-400 font-mono mt-0.5">
+                      </span>
+                      <span className="block text-xs text-stone-300 font-medium truncate">{cell.name}</span>
+                      <span className="block text-xs text-stone-400 font-mono mt-0.5">
                         {cell.coordinates}
-                      </div>
-                    </div>
+                      </span>
+                    </button>
                   );
                 })}
               </div>
