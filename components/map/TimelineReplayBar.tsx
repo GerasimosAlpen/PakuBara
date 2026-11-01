@@ -48,9 +48,9 @@ export function TimelineReplayBar({
   const currentArea = (threatenedAreaHa + timeStep * 0.35).toFixed(1);
 
   return (
-    <div className="w-full bg-surface/95 border border-stone-800 rounded-2xl p-3 sm:p-4  flex flex-col md:flex-row items-center justify-between gap-4 select-none">
+    <div className="w-full bg-surface/95 border border-stone-800 rounded-2xl p-3 sm:p-4  flex flex-col @xl:flex-row items-center justify-between gap-4 select-none">
       {/* Left: Play / Pause Button & Nowcast Controls */}
-      <div className="flex items-center gap-3.5 w-full md:w-auto">
+      <div className="flex items-center gap-3.5 w-full @xl:w-auto">
         <button
           onClick={() => setIsPlaying(!isPlaying)}
           className="w-10 h-10 rounded-xl bg-ember-strong hover:bg-ember-strong-hover text-white flex items-center justify-center   transition-transform active:scale-95 shrink-0"
@@ -61,7 +61,7 @@ export function TimelineReplayBar({
         </button>
 
         {/* Middle Stepped Scrubber */}
-        <div className="flex flex-col gap-1.5 flex-1 md:min-w-[320px]">
+        <div className="flex flex-col gap-1.5 flex-1 @xl:min-w-[320px]">
           <div className="flex items-center justify-between text-xs font-mono">
             <span className="font-bold text-stone-100 flex items-center gap-1.5">
               <span className="text-orange-500 font-bold">t+{timeStep}</span>
@@ -94,7 +94,7 @@ export function TimelineReplayBar({
       </div>
 
       {/* Right Metrics: Laju Rambatan & Estimasi Luas Terancam */}
-      <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto border-t md:border-t-0 md:border-l border-stone-800 pt-2.5 md:pt-0 md:pl-6">
+      <div className="flex items-center justify-between @xl:justify-end gap-6 w-full @xl:w-auto border-t @xl:border-t-0 @xl:border-l border-stone-800 pt-2.5 md:pt-0 md:pl-6">
         <div>
           <div className="text-xs text-stone-400">
             Laju Rambatan (R)

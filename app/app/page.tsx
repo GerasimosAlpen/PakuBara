@@ -189,18 +189,115 @@ export default function AppCommandPage() {
   ];
 
   const renderKpis = (layout: "strip" | "panel") => (
-    <dl className={layout === "strip" ? "grid grid-cols-2 gap-2" : "space-y-3"}>
+    <dl className={layout === "strip" ? "grid grid-cols-2 sm:grid-cols-4 gap-2" : "space-y-3"}>
       {kpis.map((k) => (
         <div
           key={k.label}
           className={layout === "strip" ? "p-3 rounded-lg bg-surface border border-line" : ""}
         >
           <dt className="text-xs text-stone-300">{k.label}</dt>
-          <dd className={`font-mono tabular text-2xl font-bold leading-tight ${k.tone}`}>{k.value}</dd>
+          <dd className={`font-mono tabular ${layout === "strip" ? "text-xl" : "text-2xl"} font-bold leading-tight ${k.tone}`}>{k.value}</dd>
           <dd className="text-xs text-stone-400 truncate">{k.note}</dd>
         </div>
       ))}
     </dl>
+  );
+
+
+  const renderDetail = (node: MapNode) => (
+    <>
+        <div className="flex items-center justify-between border-b border-line pb-3">
+          <div className="flex items-center gap-2">
+            <span
+              className={`w-2.5 h-2.5 rounded-full ${
+                node.status === "active"
+                  ? "bg-crit"
+                  : node.status === "watch"
+                  ? "bg-watch"
+                  : "bg-ok"
+              }`}
+              aria-hidden="true"
+            />
+            <span className="text-sm font-bold font-mono text-stone-50">
+              Titik {node.id}
+            </span>
+            <span className="text-xs text-stone-400">
+              {node.type === "probe" ? "Paku suhu" : "Tiang gas"}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSelectedNode(null)}
+            aria-label="Tutup detail titik"
+            className="w-11 h-11 -mr-2 flex items-center justify-center rounded-md hover:bg-raised text-stone-400 hover:text-stone-50"
+          >
+            <X className="w-4 h-4" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 text-center">
+          {[
+            { label: "20 cm", value: node.last_reading.t20, tone: "text-watch" },
+            { label: "50 cm", value: node.last_reading.t50, tone: "text-red-400" },
+            { label: "100 cm", value: node.last_reading.t100, tone: "text-ok" },
+          ].map((d) => (
+            <div key={d.label} className="p-2 rounded-md bg-ink border border-line">
+              <span className="text-xs text-stone-300 block">{d.label}</span>
+              <span className={`font-mono tabular font-bold ${d.tone}`}>
+                {d.value ?? "-"}°
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {node.last_reading.co !== undefined && (
+          <div className="p-2.5 rounded-md bg-ink border border-line flex justify-between items-center text-sm">
+            <span className="text-stone-300">Karbon monoksida</span>
+            <span className="font-mono tabular font-bold text-stone-50">
+              {node.last_reading.co} ppm
+            </span>
+          </div>
+        )}
+
+        {node.id === "PK-04" && (
+          <div className="p-3 rounded-md bg-crit/10 border border-crit/40 text-sm text-red-100 space-y-1">
+            <div className="font-bold flex items-center gap-2 text-red-200">
+              <Flame className="w-4 h-4" aria-hidden="true" />
+              <span>Prediksi rambat bara aktif</span>
+            </div>
+            <div>Arah 45° (timur laut), ETA 11,9 jam ke PK-05</div>
+            <div>Saran: injeksi air 600 L pada kedalaman 50 cm</div>
+          </div>
+        )}
+
+        {node.id === "PK-K03" && (
+          <div className="p-3 rounded-md bg-crit/10 border border-crit/40 text-sm text-red-100 space-y-1">
+            <div className="font-bold flex items-center gap-2 text-red-200">
+              <Flame className="w-4 h-4" aria-hidden="true" />
+              <span>Prediksi rambat bara aktif (Sebangau)</span>
+            </div>
+            <div>Arah 135° (tenggara), ETA 9,2 jam ke koridor PK-K04</div>
+            <div>Saran: injeksi air 800 L pada kedalaman 50 cm</div>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setShowSimulatorModal(true)}
+          className="w-full py-2.5 rounded-md border border-line-strong hover:bg-raised text-stone-100 text-sm font-medium flex items-center justify-center gap-2"
+        >
+          <FlaskConical className="w-4 h-4 text-accent" aria-hidden="true" />
+          <span>Uji simulasi bara di titik ini</span>
+        </button>
+
+        <Link
+          href={`/app/nodes/${node.id}`}
+          className="w-full py-2.5 rounded-md bg-ember-strong hover:bg-ember-strong-hover text-white text-sm font-semibold flex items-center justify-center gap-2"
+        >
+          <span>Buka grafik dan analisis</span>
+          <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
+        </Link>
+    </>
   );
 
   const spreadVector = isKalimantan
@@ -228,10 +325,11 @@ export default function AppCommandPage() {
       <div className="flex flex-1 overflow-hidden">
         <AppSidebar />
 
-        <main className="flex-1 flex flex-col min-w-0">
-          <div className="lg:hidden p-3">{renderKpis("strip")}</div>
+        <main className="flex-1 flex flex-col min-w-0 lg:h-[calc(100vh-3.5rem)]">
+          <div className="2xl:hidden p-3">{renderKpis("strip")}</div>
 
-          <div className="relative flex-1 min-h-[520px] lg:h-[calc(100vh-3.5rem)] overflow-hidden">
+          <div className="flex flex-1 min-h-0">
+          <div className="relative flex-1 min-w-0 min-h-[520px] lg:min-h-0 overflow-hidden">
             <CommandMap
               nodes={nodes}
               hotspots={hotspots}
@@ -247,7 +345,7 @@ export default function AppCommandPage() {
             {/* Panel KPI melayang (desktop) */}
             <section
               aria-label="Ringkasan wilayah"
-              className="hidden lg:block absolute top-28 left-3 z-20 w-56 bg-panel backdrop-blur-md border border-line rounded-lg p-4"
+              className="hidden 2xl:block absolute top-32 left-3 z-20 w-56 bg-panel backdrop-blur-md border border-line rounded-lg p-4"
             >
               {renderKpis("panel")}
             </section>
@@ -324,7 +422,7 @@ export default function AppCommandPage() {
             )}
 
             {/* Bilah waktu di dasar peta */}
-            <div className="absolute bottom-4 left-3 right-3 sm:left-4 sm:right-4 z-20 max-w-2xl mx-auto">
+            <div className="absolute bottom-4 left-3 right-3 sm:left-4 sm:right-4 z-20 max-w-2xl mx-auto @container">
               <TimelineReplayBar
                 onTimeChange={() => {
                   // belum terhubung ke data replay
@@ -332,103 +430,24 @@ export default function AppCommandPage() {
               />
             </div>
 
-            {/* Panel Detail Titik terpilih */}
+            {/* Bottom sheet detail titik (ponsel dan tablet) */}
             {selectedNode && (
-              <div className="absolute z-20 inset-x-0 bottom-0 max-h-[55%] sm:inset-x-auto sm:bottom-auto sm:top-4 sm:right-4 sm:w-80 sm:max-h-[calc(100%-2rem)] overflow-y-auto bg-panel backdrop-blur-md border border-line rounded-t-lg sm:rounded-lg p-4 shadow-2xl animate-fadeIn space-y-3">
-                <div className="flex items-center justify-between border-b border-line pb-3">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`w-2.5 h-2.5 rounded-full ${
-                        selectedNode.status === "active"
-                          ? "bg-crit"
-                          : selectedNode.status === "watch"
-                          ? "bg-watch"
-                          : "bg-ok"
-                      }`}
-                      aria-hidden="true"
-                    />
-                    <span className="text-sm font-bold font-mono text-stone-50">
-                      Titik {selectedNode.id}
-                    </span>
-                    <span className="text-xs text-stone-400">
-                      {selectedNode.type === "probe" ? "Paku suhu" : "Tiang gas"}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedNode(null)}
-                    aria-label="Tutup detail titik"
-                    className="w-11 h-11 -mr-2 flex items-center justify-center rounded-md hover:bg-raised text-stone-400 hover:text-stone-50"
-                  >
-                    <X className="w-4 h-4" aria-hidden="true" />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  {[
-                    { label: "20 cm", value: selectedNode.last_reading.t20, tone: "text-watch" },
-                    { label: "50 cm", value: selectedNode.last_reading.t50, tone: "text-red-400" },
-                    { label: "100 cm", value: selectedNode.last_reading.t100, tone: "text-ok" },
-                  ].map((d) => (
-                    <div key={d.label} className="p-2 rounded-md bg-ink border border-line">
-                      <span className="text-xs text-stone-300 block">{d.label}</span>
-                      <span className={`font-mono tabular font-bold ${d.tone}`}>
-                        {d.value ?? "-"}°
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {selectedNode.last_reading.co !== undefined && (
-                  <div className="p-2.5 rounded-md bg-ink border border-line flex justify-between items-center text-sm">
-                    <span className="text-stone-300">Karbon monoksida</span>
-                    <span className="font-mono tabular font-bold text-stone-50">
-                      {selectedNode.last_reading.co} ppm
-                    </span>
-                  </div>
-                )}
-
-                {selectedNode.id === "PK-04" && (
-                  <div className="p-3 rounded-md bg-crit/10 border border-crit/40 text-sm text-red-100 space-y-1">
-                    <div className="font-bold flex items-center gap-2 text-red-200">
-                      <Flame className="w-4 h-4" aria-hidden="true" />
-                      <span>Prediksi rambat bara aktif</span>
-                    </div>
-                    <div>Arah 45° (timur laut), ETA 11,9 jam ke PK-05</div>
-                    <div>Saran: injeksi air 600 L pada kedalaman 50 cm</div>
-                  </div>
-                )}
-
-                {selectedNode.id === "PK-K03" && (
-                  <div className="p-3 rounded-md bg-crit/10 border border-crit/40 text-sm text-red-100 space-y-1">
-                    <div className="font-bold flex items-center gap-2 text-red-200">
-                      <Flame className="w-4 h-4" aria-hidden="true" />
-                      <span>Prediksi rambat bara aktif (Sebangau)</span>
-                    </div>
-                    <div>Arah 135° (tenggara), ETA 9,2 jam ke koridor PK-K04</div>
-                    <div>Saran: injeksi air 800 L pada kedalaman 50 cm</div>
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => setShowSimulatorModal(true)}
-                  className="w-full py-2.5 rounded-md border border-line-strong hover:bg-raised text-stone-100 text-sm font-medium flex items-center justify-center gap-2"
-                >
-                  <FlaskConical className="w-4 h-4 text-accent" aria-hidden="true" />
-                  <span>Uji simulasi bara di titik ini</span>
-                </button>
-
-                <Link
-                  href={`/app/nodes/${selectedNode.id}`}
-                  className="w-full py-2.5 rounded-md bg-ember-strong hover:bg-ember-strong-hover text-white text-sm font-semibold flex items-center justify-center gap-2"
-                >
-                  <span>Buka grafik dan analisis</span>
-                  <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
-                </Link>
+              <div className="lg:hidden absolute z-20 inset-x-0 bottom-0 max-h-[55%] overflow-y-auto bg-panel backdrop-blur-md border border-line rounded-t-lg p-4 shadow-2xl animate-fadeIn space-y-3">
+                {renderDetail(selectedNode)}
               </div>
             )}
           </div>
+
+          {/* Kolom detail titik (desktop): di samping peta, tidak menutupi kontrol */}
+          {selectedNode && (
+            <aside
+              aria-label="Detail titik terpilih"
+              className="hidden lg:block w-80 shrink-0 border-l border-line bg-surface overflow-y-auto p-4 space-y-3"
+            >
+              {renderDetail(selectedNode)}
+            </aside>
+          )}
+        </div>
         </main>
       </div>
 

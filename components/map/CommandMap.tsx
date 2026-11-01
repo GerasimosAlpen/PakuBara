@@ -161,6 +161,8 @@ const BASEMAPS = {
   },
 };
 
+const COMPASS_ID = ["utara", "timur laut", "timur", "tenggara", "selatan", "barat daya", "barat", "barat laut"];
+
 export function CommandMap({
   nodes = [],
   hotspots = [],
@@ -174,6 +176,9 @@ export function CommandMap({
 }: CommandMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
+  // directionDeg adalah arah asal angin; panah dan teks menunjukkan arah tuju
+  const windToDeg = (wind.directionDeg + 180) % 360;
+  const windToLabel = COMPASS_ID[Math.round(windToDeg / 45) % 8];
 
   const [basemapKey, setBasemapKey] = useState<keyof typeof BASEMAPS>("esri_dark");
   const [is3D, setIs3D] = useState<boolean>(false);
@@ -648,7 +653,7 @@ export function CommandMap({
   }, [activeAreaId]);
 
   return (
-    <div className="relative w-full h-full min-h-[500px] overflow-hidden bg-ink">
+    <div className="relative w-full h-full min-h-[500px] overflow-hidden bg-ink @container">
       {/* MapLibre WebGL Canvas Container */}
       <div ref={mapContainer} className="w-full h-full min-h-[500px]" />
 
@@ -866,10 +871,14 @@ export function CommandMap({
       </div>
 
       {/* Wind & Weather Indicator Badge (Top Right) - Matching Lampiran 2 */}
-      <div className="absolute top-3 right-14 bg-surface/95 px-3 py-1.5 rounded-xl border border-stone-800/90  flex items-center gap-2 z-10">
-        <Navigation className="w-3.5 h-3.5 text-orange-400 rotate-45 shrink-0" />
+      <div className="hidden @2xl:flex absolute top-3 right-14 bg-surface/95 px-3 py-1.5 rounded-xl border border-line items-center gap-2 z-10">
+        <Navigation
+          className="w-3.5 h-3.5 text-accent shrink-0"
+          style={{ transform: `rotate(${windToDeg - 45}deg)` }}
+          aria-hidden="true"
+        />
         <div className="text-xs font-mono text-stone-200">
-          Angin di 1.234°S 102.678°E: ke Timur Laut (45°) | {wind.speedKmh} km/jam · RH 88% · 31°C
+          Angin ke {windToLabel} ({Math.round(windToDeg)}°), {wind.speedKmh} km/jam
         </div>
       </div>
 
