@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef } from "react";
 import * as echarts from "echarts";
+import { useIsDark } from "@/components/layout/ThemeToggle";
+import { chartColors } from "./chart-theme";
 
 interface AreaStatusDonutProps {
   statusBreakdown?: {
@@ -18,11 +20,20 @@ export function AreaStatusDonut({
 }: AreaStatusDonutProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
+  const isDark = useIsDark();
+  const themeRef = useRef(isDark);
 
   useEffect(() => {
+    const c = chartColors(isDark);
     if (!chartRef.current) return;
+    if (chartInstance.current && themeRef.current !== isDark) {
+      chartInstance.current.dispose();
+      chartInstance.current = null;
+    }
+    themeRef.current = isDark;
+
     if (!chartInstance.current) {
-      chartInstance.current = echarts.init(chartRef.current, "dark");
+      chartInstance.current = echarts.init(chartRef.current, isDark ? "dark" : undefined);
     }
 
     const data = [
@@ -39,14 +50,14 @@ export function AreaStatusDonut({
       backgroundColor: "transparent",
       tooltip: {
         trigger: "item",
-        backgroundColor: "#181414",
-        borderColor: "#3D3030",
-        textStyle: { color: "#F3F4F6", fontSize: 11 },
+        backgroundColor: c.tooltipBg,
+        borderColor: c.tooltipBorder,
+        textStyle: { color: c.text, fontSize: 11 },
       },
       legend: {
         bottom: 0,
         left: "center",
-        textStyle: { color: "#A3A3A3", fontSize: 10 },
+        textStyle: { color: c.muted, fontSize: 10 },
       },
       series: [
         {
@@ -61,7 +72,7 @@ export function AreaStatusDonut({
             formatter: `${total}\nTitik`,
             fontSize: 16,
             fontWeight: "bold",
-            color: "#FFFFFF",
+            color: c.text,
           },
           emphasis: {
             label: {
@@ -83,11 +94,11 @@ export function AreaStatusDonut({
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [statusBreakdown]);
+  }, [statusBreakdown, isDark]);
 
   return (
-    <div className="w-full bg-[#181414] border border-[#2D2424] rounded-xl p-4">
-      <h4 className="text-sm font-semibold text-white mb-2">Sebaran Status Titik Sensor</h4>
+    <div className="w-full bg-surface border border-line rounded-xl p-4">
+      <h4 className="text-sm font-semibold text-stone-50 mb-2">Sebaran Status Titik Sensor</h4>
       <div ref={chartRef} className="w-full h-56" />
     </div>
   );

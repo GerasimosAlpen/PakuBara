@@ -126,7 +126,7 @@ function PublicAlertTokenContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#121010] flex items-center justify-center text-xs font-mono text-neutral-400">
+      <div className="min-h-screen bg-ink flex items-center justify-center text-xs font-mono text-stone-400">
         Memverifikasi token tautan darurat...
       </div>
     );
@@ -134,11 +134,11 @@ function PublicAlertTokenContent() {
 
   if (errorMsg && !data) {
     return (
-      <div className="min-h-screen bg-[#121010] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-[#181414] border border-red-800/60 p-6 rounded-2xl text-center space-y-3">
+      <div className="min-h-screen bg-ink flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-surface border border-red-800/60 p-6 rounded-2xl text-center space-y-3">
           <ShieldAlert className="w-8 h-8 text-red-500 mx-auto" />
-          <h2 className="text-base font-bold text-white">Tautan Tidak Dapat Diakses</h2>
-          <p className="text-xs text-neutral-400 leading-relaxed">{errorMsg}</p>
+          <h2 className="text-base font-bold text-stone-50">Tautan Tidak Dapat Diakses</h2>
+          <p className="text-xs text-stone-400 leading-relaxed">{errorMsg}</p>
         </div>
       </div>
     );
@@ -151,32 +151,29 @@ function PublicAlertTokenContent() {
   const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
 
   return (
-    <div className="min-h-screen bg-[#121010] text-[#F3F4F6] selection:bg-[#EA580C] selection:text-white pb-16">
+    <div className="min-h-screen bg-ink text-stone-100 selection:bg-ember selection:text-white pb-16">
       {/* Top Banner Mobile Header */}
-      <header className="border-b border-[#2D2424] bg-[#181414] px-4 py-3.5 flex items-center justify-between sticky top-0 z-30">
+      <header className="border-b border-line bg-surface px-4 py-3.5 flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-red-600 flex items-center justify-center">
-            <Flame className="w-4 h-4 text-white animate-pulse" />
-          </div>
           <div>
-            <div className="text-xs font-bold text-white font-mono">PAKUBARA SATGAS</div>
-            <div className="text-[10px] text-neutral-400">Instruksi Darurat Lapangan</div>
+            <div className="text-xs font-bold text-stone-50 font-mono">PakuBara Satgas</div>
+            <div className="text-xs text-stone-400">Instruksi Darurat Lapangan</div>
           </div>
         </div>
 
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-red-950 text-red-400 border border-red-800">
+        <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-red-950 text-red-400 border border-red-800">
           TOKEN VALID 24J
         </span>
       </header>
 
       <main className="max-w-lg mx-auto px-4 pt-6 space-y-5">
         {/* Card Level Alert */}
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-red-950/70 via-[#1C1616] to-[#181414] border border-red-700/60 space-y-3">
+        <div className="p-5 rounded-2xl bg-red-950/70 border border-red-700/60 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-red-600 text-white animate-pulse">
+            <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-red-600 text-white">
               BARA GAMBUT AKTIF
             </span>
-            <span className="text-xs font-mono text-neutral-400">
+            <span className="text-xs font-mono text-stone-400">
               {new Date(alert?.created_at || Date.now()).toLocaleTimeString("id-ID", {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -185,10 +182,10 @@ function PublicAlertTokenContent() {
           </div>
 
           <div>
-            <h1 className="text-2xl font-black text-white tracking-wide">
+            <h1 className="text-2xl font-black text-stone-50 tracking-wide">
               TITIK {node?.id || "PK-04"}
             </h1>
-            <p className="text-xs text-neutral-300">
+            <p className="text-xs text-stone-300">
               {data?.area.name || "Blok B Hutan Gambut Lindung"}
             </p>
           </div>
@@ -198,44 +195,44 @@ function PublicAlertTokenContent() {
             href={gmapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-white text-black font-bold text-xs tracking-wide hover:bg-neutral-200 transition-all shadow-lg"
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-stone-50 text-stone-950 font-bold text-xs tracking-wide hover:bg-stone-200 transition-all "
           >
-            <Navigation className="w-4 h-4 text-[#EA580C]" />
+            <Navigation className="w-4 h-4 text-accent" />
             <span>Buka Navigasi Google Maps ({lat}, {lon})</span>
           </a>
         </div>
 
         {/* Snapshot Parameter Fisika */}
-        <div className="p-4 rounded-xl bg-[#181414] border border-[#2D2424] space-y-3">
-          <h3 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider font-mono">
+        <div className="p-4 rounded-xl bg-surface border border-line space-y-3">
+          <h3 className="text-xs font-semibold text-stone-300">
             Parameter Termal & Gas Bawah Permukaan
           </h3>
 
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="p-2.5 rounded-lg bg-[#121010] border border-[#261E1E]">
-              <span className="text-[10px] text-neutral-400 block">Suhu Gambut 50cm</span>
+            <div className="p-2.5 rounded-lg bg-ink border border-line">
+              <span className="text-xs text-stone-400 block">Suhu Gambut 50cm</span>
               <span className="font-mono text-lg font-black text-red-400">
                 {alert?.snapshot.t50 ?? 87.3}°C
               </span>
             </div>
 
-            <div className="p-2.5 rounded-lg bg-[#121010] border border-[#261E1E]">
-              <span className="text-[10px] text-neutral-400 block">Konsentrasi Gas CO</span>
-              <span className="font-mono text-lg font-black text-sky-400">
+            <div className="p-2.5 rounded-lg bg-ink border border-line">
+              <span className="text-xs text-stone-400 block">Konsentrasi Gas CO</span>
+              <span className="font-mono text-lg font-black text-orange-400">
                 {alert?.snapshot.co_ppm ?? 185} ppm
               </span>
             </div>
 
-            <div className="p-2.5 rounded-lg bg-[#121010] border border-[#261E1E]">
-              <span className="text-[10px] text-neutral-400 block">Laju Pemanasan</span>
+            <div className="p-2.5 rounded-lg bg-ink border border-line">
+              <span className="text-xs text-stone-400 block">Laju Pemanasan</span>
               <span className="font-mono text-base font-bold text-amber-400">
                 +{alert?.snapshot.rate ?? 6.0}°C / jam
               </span>
             </div>
 
-            <div className="p-2.5 rounded-lg bg-[#121010] border border-[#261E1E]">
-              <span className="text-[10px] text-neutral-400 block">Prediksi Arah & ETA</span>
-              <span className="font-mono text-xs font-bold text-white mt-1 block">
+            <div className="p-2.5 rounded-lg bg-ink border border-line">
+              <span className="text-xs text-stone-400 block">Prediksi Arah & ETA</span>
+              <span className="font-mono text-xs font-bold text-stone-50 mt-1 block">
                 {alert?.snapshot.direction ?? "Timur Laut (45°)"} (ETA {alert?.snapshot.eta ?? 11.9}j)
               </span>
             </div>
@@ -246,7 +243,7 @@ function PublicAlertTokenContent() {
         {!acknowledged ? (
           <button
             onClick={handleAcknowledge}
-            className="w-full py-3 rounded-xl bg-[#EA580C] hover:bg-[#F97316] text-white font-bold text-xs tracking-wide transition-all shadow-md flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl bg-ember-strong hover:bg-ember-strong-hover text-white font-bold text-xs tracking-wide transition-all  flex items-center justify-center gap-2"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Konfirmasi: Regu Saya Menuju Lokasi</span>
@@ -259,23 +256,23 @@ function PublicAlertTokenContent() {
         )}
 
         {/* Formulir Catat Tindakan Pemadaman / Injeksi */}
-        <div className="p-5 rounded-xl bg-[#181414] border border-[#2D2424] space-y-4">
-          <h3 className="text-xs font-semibold text-white uppercase tracking-wider font-mono flex items-center gap-2">
-            <Droplets className="w-4 h-4 text-sky-400" />
+        <div className="p-5 rounded-xl bg-surface border border-line space-y-4">
+          <h3 className="text-xs font-semibold text-stone-50 flex items-center gap-2">
+            <Droplets className="w-4 h-4 text-orange-400" />
             Catat Tindakan Lapangan (Nozzle / Injeksi)
           </h3>
 
           {actionSuccess ? (
             <div className="p-4 rounded-lg bg-emerald-950/40 border border-emerald-700/60 text-emerald-300 text-xs text-center space-y-1">
               <div className="font-bold">Tindakan Berhasil Disimpan di Sistem Posko</div>
-              <p className="text-[11px] text-neutral-400">
+              <p className="text-xs text-stone-400">
                 Terima kasih atas respons cepat Anda. Data telemetri titik ini akan terus dipantau.
               </p>
             </div>
           ) : (
             <form onSubmit={handleRecordAction} className="space-y-3 text-xs">
               <div>
-                <label className="text-[10px] text-neutral-400 uppercase font-mono block mb-1">
+                <label className="text-xs text-stone-400 block mb-1">
                   Jenis Tindakan
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -290,8 +287,8 @@ function PublicAlertTokenContent() {
                       onClick={() => setActionKind(k.id as "injection" | "inspection" | "relocate")}
                       className={`py-2 rounded-lg font-medium transition-colors ${
                         actionKind === k.id
-                          ? "bg-[#EA580C] text-white"
-                          : "bg-[#121010] text-neutral-400 border border-[#261E1E]"
+                          ? "bg-ember-strong text-white"
+                          : "bg-ink text-stone-400 border border-line"
                       }`}
                     >
                       {k.label}
@@ -302,32 +299,32 @@ function PublicAlertTokenContent() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] text-neutral-400 uppercase font-mono block mb-1">
+                  <label className="text-xs text-stone-400 block mb-1">
                     Volume Air (Liter)
                   </label>
                   <input
                     type="number"
                     value={waterLiters}
                     onChange={(e) => setWaterLiters(Number(e.target.value))}
-                    className="w-full bg-[#121010] border border-[#2D2424] rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-[#EA580C]"
+                    className="w-full bg-ink border border-line rounded-lg px-3 py-2 text-stone-50 font-mono focus:outline-none focus:border-ember"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] text-neutral-400 uppercase font-mono block mb-1">
+                  <label className="text-xs text-stone-400 block mb-1">
                     Kedalaman Nozzle (cm)
                   </label>
                   <input
                     type="number"
                     value={depthCm}
                     onChange={(e) => setDepthCm(Number(e.target.value))}
-                    className="w-full bg-[#121010] border border-[#2D2424] rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-[#EA580C]"
+                    className="w-full bg-ink border border-line rounded-lg px-3 py-2 text-stone-50 font-mono focus:outline-none focus:border-ember"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] text-neutral-400 uppercase font-mono block mb-1">
+                <label className="text-xs text-stone-400 block mb-1">
                   Catatan Lapangan & Kondisi Asap
                 </label>
                 <textarea
@@ -335,7 +332,7 @@ function PublicAlertTokenContent() {
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Misal: Injeksi pipa gambut kedalaman 50cm, asap putih mereda..."
-                  className="w-full bg-[#121010] border border-[#2D2424] rounded-lg p-2.5 text-white focus:outline-none focus:border-[#EA580C]"
+                  className="w-full bg-ink border border-line rounded-lg p-2.5 text-stone-50 focus:outline-none focus:border-ember"
                 />
               </div>
 
@@ -359,7 +356,7 @@ export default function PublicAlertTokenPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#121010] flex items-center justify-center text-xs font-mono text-neutral-400">
+        <div className="min-h-screen bg-ink flex items-center justify-center text-xs font-mono text-stone-400">
           Memverifikasi token tautan darurat...
         </div>
       }

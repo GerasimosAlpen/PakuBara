@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import {
-  Sparkles,
+  FlaskConical,
   Flame,
   RotateCcw,
   Send,
@@ -159,19 +159,16 @@ export default function DemoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121010] text-[#F3F4F6] selection:bg-[#EA580C] selection:text-white">
+    <div className="min-h-screen bg-ink text-stone-100 selection:bg-ember selection:text-white">
       {/* Top Bar */}
-      <header className="h-16 border-b border-[#2D2424] bg-[#181414] px-6 flex items-center justify-between sticky top-0 z-40">
+      <header className="h-16 border-b border-line bg-surface px-6 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#EA580C] to-[#DC2626] flex items-center justify-center shadow-lg">
-              <Flame className="w-5 h-5 text-white animate-pulse" />
-            </div>
-            <span className="font-mono font-bold text-base tracking-wider text-white">PAKUBARA</span>
+            <span className="font-bold text-lg tracking-tight text-stone-50">PakuBara</span>
           </Link>
-          <span className="text-neutral-500 font-mono">/</span>
-          <span className="text-xs font-semibold text-amber-400 font-mono uppercase tracking-wider flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4" />
+          <span className="text-stone-400 font-mono">/</span>
+          <span className="text-xs font-semibold text-amber-400 flex items-center gap-1.5">
+            <FlaskConical className="w-4 h-4" />
             Simulator Interaktif Dewan Juri
           </span>
         </div>
@@ -180,14 +177,14 @@ export default function DemoPage() {
           <button
             onClick={handleReset}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-[#241D1D] hover:bg-[#2D2424] text-neutral-300 border border-[#382B2B] transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-raised hover:bg-line text-stone-300 border border-line-strong transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset Simulasi</span>
           </button>
           <Link
             href="/app"
-            className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold rounded-lg bg-[#EA580C] hover:bg-[#F97316] text-white transition-all shadow-md"
+            className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold rounded-lg bg-ember-strong hover:bg-ember-strong-hover text-white transition-all "
           >
             <span>Buka Peta Komando</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -198,25 +195,25 @@ export default function DemoPage() {
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-8">
         {/* Banner Penjelasan */}
-        <div className="p-4 rounded-xl bg-gradient-to-r from-amber-950/40 via-[#1C1616] to-[#1C1616] border border-amber-700/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-700/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <h2 className="text-sm font-bold text-amber-300 flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
+              <FlaskConical className="w-4 h-4" />
               Pusat Eksperimen Tanpa Ketergantungan Hardware
             </h2>
-            <p className="text-xs text-neutral-300 max-w-3xl leading-relaxed">
+            <p className="text-xs text-stone-300 max-w-3xl leading-relaxed">
               Dewan juri dapat memicu skenario ekstrem karhutla, memanaskan probe secara dinamis, menguji algoritma fusi
               2 dari 3 sinyal, serta menguji penerimaan notifikasi darurat WhatsApp langsung ke nomor pribadi Anda.
             </p>
           </div>
-          <span className="text-[11px] font-mono px-2.5 py-1 rounded bg-amber-500/20 text-amber-200 border border-amber-500/30 whitespace-nowrap">
+          <span className="text-xs font-mono px-2.5 py-1 rounded bg-amber-500/20 text-amber-200 border border-amber-500/30 whitespace-nowrap">
             MODE DEMO AKTIF
           </span>
         </div>
 
         {/* Notifikasi feedback aksi */}
         {resultMessage && (
-          <div className="p-3.5 rounded-xl bg-[#1C1616] border border-emerald-700/60 text-emerald-300 text-xs flex items-center gap-2.5 animate-fadeIn">
+          <div className="p-3.5 rounded-xl bg-raised border border-emerald-700/60 text-emerald-300 text-xs flex items-center gap-2.5 animate-fadeIn">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>{resultMessage}</span>
           </div>
@@ -224,7 +221,7 @@ export default function DemoPage() {
 
         {/* 4 Kartu Skenario */}
         <div>
-          <h3 className="text-sm font-semibold text-white uppercase tracking-wider font-mono mb-4">
+          <h3 className="text-sm font-semibold text-stone-50 mb-4">
             1. Pilih Skenario Uji Standar
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -236,20 +233,20 @@ export default function DemoPage() {
                   onClick={() => handleApplyScenario(sc.id)}
                   className={`p-4 rounded-xl border cursor-pointer transition-all ${
                     isSelected
-                      ? "bg-[#221818] border-[#EA580C] shadow-lg shadow-orange-950/30"
-                      : "bg-[#181414] border-[#2D2424] hover:border-[#3D3030]"
+                      ? "bg-raised border-ember  "
+                      : "bg-surface border-line hover:border-line-strong"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-white">{sc.name}</span>
+                    <span className="text-xs font-bold text-stone-50">{sc.name}</span>
                     {isSelected && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#EA580C] text-white">
+                      <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-ember-strong text-white">
                         Aktif
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-neutral-400 leading-relaxed">{sc.description}</p>
-                  <div className="mt-3 pt-2.5 border-t border-[#261E1E] text-[11px] text-amber-400/90 font-mono">
+                  <p className="text-xs text-stone-400 leading-relaxed">{sc.description}</p>
+                  <div className="mt-3 pt-2.5 border-t border-line text-xs text-amber-400/90 font-mono">
                     Hasil: {sc.expected_outcome}
                   </div>
                 </div>
@@ -261,15 +258,15 @@ export default function DemoPage() {
         {/* Kontrol Pemanasan Titik Dinamis & Penampang */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Panel Kontrol Suhu */}
-          <div className="p-5 rounded-xl bg-[#181414] border border-[#2D2424] space-y-5">
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider font-mono flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-[#EA580C]" />
+          <div className="p-5 rounded-xl bg-surface border border-line space-y-5">
+            <h3 className="text-sm font-semibold text-stone-50 flex items-center gap-2">
+              <Sliders className="w-4 h-4 text-accent" />
               2. Manipulasi Parameter Suhu & Gas (PK-04)
             </h3>
 
             <div className="space-y-3">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-neutral-300">Suhu Gambut Kedalaman 50 cm:</span>
+                <span className="text-stone-300">Suhu Gambut Kedalaman 50 cm:</span>
                 <span className="font-mono text-base font-bold text-red-400">{targetTemp}°C</span>
               </div>
               <input
@@ -279,9 +276,9 @@ export default function DemoPage() {
                 step="1"
                 value={targetTemp}
                 onChange={(e) => setTargetTemp(Number(e.target.value))}
-                className="w-full h-2 bg-[#2D2424] rounded-lg appearance-none cursor-pointer accent-[#EA580C]"
+                className="w-full h-2 bg-line rounded-lg appearance-none cursor-pointer accent-[#EA580C]"
               />
-              <div className="flex justify-between text-[10px] font-mono text-neutral-500">
+              <div className="flex justify-between text-xs font-mono text-stone-400">
                 <span>25°C (Normal)</span>
                 <span>60°C (Ambang Bara)</span>
                 <span>150°C (Pirolisis Berat)</span>
@@ -290,8 +287,8 @@ export default function DemoPage() {
 
             <div className="space-y-3">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-neutral-300">Konsentrasi Gas CO (GS-01):</span>
-                <span className="font-mono text-base font-bold text-sky-400">{coPpm} ppm</span>
+                <span className="text-stone-300">Konsentrasi Gas CO (GS-01):</span>
+                <span className="font-mono text-base font-bold text-orange-400">{coPpm} ppm</span>
               </div>
               <input
                 type="range"
@@ -300,9 +297,9 @@ export default function DemoPage() {
                 step="5"
                 value={coPpm}
                 onChange={(e) => setCoPpm(Number(e.target.value))}
-                className="w-full h-2 bg-[#2D2424] rounded-lg appearance-none cursor-pointer accent-sky-500"
+                className="w-full h-2 bg-line rounded-lg appearance-none cursor-pointer accent-orange-500"
               />
-              <div className="flex justify-between text-[10px] font-mono text-neutral-500">
+              <div className="flex justify-between text-xs font-mono text-stone-400">
                 <span>0 ppm</span>
                 <span>50 ppm (Ambang Gas)</span>
                 <span>400 ppm (Kritis)</span>
@@ -312,7 +309,7 @@ export default function DemoPage() {
             <button
               onClick={handleHeatNode}
               disabled={loading}
-              className="w-full py-2.5 rounded-lg bg-[#EA580C] hover:bg-[#F97316] text-white text-xs font-semibold tracking-wide transition-all shadow-md flex items-center justify-center gap-2"
+              className="w-full py-2.5 rounded-lg bg-ember-strong hover:bg-ember-strong-hover text-white text-xs font-semibold tracking-wide transition-all  flex items-center justify-center gap-2"
             >
               <Flame className="w-4 h-4" />
               <span>Terapkan Panas ke Node PK-04 Sekarang</span>
@@ -333,12 +330,12 @@ export default function DemoPage() {
         </div>
 
         {/* Uji Notifikasi WhatsApp ke Nomor Juri */}
-        <div className="p-5 rounded-xl bg-[#181414] border border-[#2D2424]">
-          <h3 className="text-sm font-semibold text-white uppercase tracking-wider font-mono flex items-center gap-2 mb-2">
+        <div className="p-5 rounded-xl bg-surface border border-line">
+          <h3 className="text-sm font-semibold text-stone-50 flex items-center gap-2 mb-2">
             <Send className="w-4 h-4 text-emerald-400" />
             3. Uji Pengiriman Pesan WhatsApp Resmi (Fonnte API)
           </h3>
-          <p className="text-xs text-neutral-400 mb-4 max-w-2xl leading-relaxed">
+          <p className="text-xs text-stone-400 mb-4 max-w-2xl leading-relaxed">
             Ketik nomor WhatsApp aktif Anda (format: 62812xxxxxxxx) untuk menerima format pesan 8 baris darurat
             yang akan diterima oleh regu pemadam Manggala Agni di lapangan.
           </p>
@@ -349,7 +346,7 @@ export default function DemoPage() {
               placeholder="Contoh: 628123456789"
               value={testPhone}
               onChange={(e) => setTestPhone(e.target.value)}
-              className="flex-1 bg-[#121010] border border-[#2D2424] rounded-lg px-3.5 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#EA580C]"
+              className="flex-1 bg-ink border border-line rounded-lg px-3.5 py-2 text-xs font-mono text-stone-50 focus:outline-none focus:border-ember"
             />
             <button
               type="submit"

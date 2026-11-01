@@ -2,34 +2,21 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Flame, Bell, ShieldAlert, Radio, ChevronDown, Activity, Sparkles } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Bell, ChevronDown, FlaskConical, Menu, X } from "lucide-react";
+import { NAV_ITEMS } from "./nav-items";
+import { useOpenAlerts } from "./useOpenAlerts";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface AreaOption {
   id: string;
   name: string;
-  badge: string;
-  badgeColor: string;
 }
 
 const AVAILABLE_AREAS: AreaOption[] = [
-  {
-    id: "a0000000-0000-0000-0000-000000000001",
-    name: "Blok B Pulau Padang (Riau)",
-    badge: "8 Paku + 2 Gas",
-    badgeColor: "bg-red-500",
-  },
-  {
-    id: "a0000000-0000-0000-0000-000000000003",
-    name: "KHG Kahayan - Sebangau (Kalteng)",
-    badge: "8 Paku + 2 Gas",
-    badgeColor: "bg-amber-500",
-  },
-  {
-    id: "all",
-    name: "Semua Wilayah Operasi (Lintas KHG)",
-    badge: "16 Paku + 4 Gas",
-    badgeColor: "bg-sky-500",
-  },
+  { id: "a0000000-0000-0000-0000-000000000001", name: "Blok B Pulau Padang (Riau)" },
+  { id: "a0000000-0000-0000-0000-000000000003", name: "KHG Kahayan - Sebangau (Kalteng)" },
+  { id: "all", name: "Semua Wilayah Operasi (Lintas KHG)" },
 ];
 
 interface AppNavbarProps {
@@ -43,113 +30,82 @@ export function AppNavbar({
   activeAreaId = "a0000000-0000-0000-0000-000000000001",
   onSelectArea,
 }: AppNavbarProps) {
-  const [openAlertCount, setOpenAlertCount] = useState<number>(1);
-  const [isLive, setIsLive] = useState<boolean>(true);
-  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const pathname = usePathname();
+  const { count, connected } = useOpenAlerts();
+  const [areaMenuOpen, setAreaMenuOpen] = useState<boolean>(false);
+  const [navOpen, setNavOpen] = useState<boolean>(false);
 
-  // Poll open alerts count
-  useEffect(() => {
-    async function fetchAlertCount() {
-      try {
-        const res = await fetch("/api/alerts?status=open");
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          setOpenAlertCount(json.data.length);
-        }
-      } catch {
-        setOpenAlertCount(1);
-      }
-    }
-    fetchAlertCount();
-    const interval = setInterval(fetchAlertCount, 15000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Keyboard navigation & outside click dismiss
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
+      if (e.key === "Escape") {
+        setAreaMenuOpen(false);
+        setNavOpen(false);
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  const alertLabel =
+    count === null
+      ? "Pusat alert, jumlah belum tersedia"
+      : `Pusat alert, ${count} alert terbuka`;
+
   return (
-    <header className="h-14 border-b border-slate-800 bg-slate-900/95 backdrop-blur-md px-4 flex items-center justify-between sticky top-0 z-40 select-none">
-      {/* Brand & Area Selector */}
-      <div className="flex items-center gap-4 sm:gap-6">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center shadow-md shadow-red-950/30 group-hover:bg-red-500 transition-colors">
-            <Flame className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <div className="font-bold text-sm tracking-wider text-slate-100 font-mono flex items-center gap-1.5">
-              PAKUBARA
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-sans font-normal border border-slate-700/60">
-                v2.0
-              </span>
-            </div>
-            <div className="text-[10px] text-slate-400 hidden sm:block">
-              Sistem Deteksi Bara Gambut Bawah Permukaan
-            </div>
-          </div>
+    <header className="h-14 border-b border-line bg-surface px-3 sm:px-4 flex items-center justify-between sticky top-0 z-40 select-none">
+      <div className="flex items-center gap-3 sm:gap-5 min-w-0">
+        <button
+          type="button"
+          onClick={() => setNavOpen((v) => !v)}
+          aria-label={navOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
+          aria-expanded={navOpen}
+          className="md:hidden p-2.5 -ml-1 rounded-md text-stone-200 hover:bg-raised"
+        >
+          {navOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
+        </button>
+
+        <Link href="/" className="font-bold text-lg tracking-tight text-stone-50 shrink-0">
+          PakuBara
         </Link>
 
-        {/* Area dropdown switcher */}
-        <div className="relative flex items-center gap-2 pl-3 sm:pl-4 border-l border-slate-800">
-          <span className="text-xs text-slate-400 hidden lg:inline">Wilayah:</span>
+        <div className="relative flex items-center gap-2 pl-3 sm:pl-5 border-l border-line min-w-0">
+          <span className="text-xs text-stone-400 hidden lg:inline">Wilayah</span>
           <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="flex items-center gap-2 text-xs font-medium text-slate-200 bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-700/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
-            aria-haspopup="true"
-            aria-expanded={menuOpen}
+            type="button"
+            onClick={() => setAreaMenuOpen(!areaMenuOpen)}
+            className="flex items-center gap-2 text-sm text-stone-100 bg-raised hover:bg-line px-3 py-2 rounded-md border border-line min-w-0"
+            aria-haspopup="menu"
+            aria-expanded={areaMenuOpen}
           >
-            <span
-              className={`w-2 h-2 rounded-full ${
-                activeAreaId === "a0000000-0000-0000-0000-000000000003"
-                  ? "bg-amber-400"
-                  : activeAreaId === "all"
-                  ? "bg-sky-400"
-                  : "bg-red-500"
-              }`}
-            />
-            <span className="max-w-[140px] sm:max-w-[200px] truncate">{activeAreaName}</span>
+            <span className="max-w-[120px] sm:max-w-[220px] truncate">{activeAreaName}</span>
             <ChevronDown
-              className={`w-3.5 h-3.5 text-slate-400 transition-transform ${
-                menuOpen ? "rotate-180" : ""
-              }`}
+              className={`w-4 h-4 text-stone-400 shrink-0 transition-transform ${areaMenuOpen ? "rotate-180" : ""}`}
+              aria-hidden="true"
             />
           </button>
 
-          {menuOpen && (
+          {areaMenuOpen && (
             <div
-              className="absolute left-3 top-10 w-72 bg-slate-900 border border-slate-700/90 rounded-xl shadow-2xl p-1.5 z-50 animate-fadeIn"
+              className="absolute left-3 top-12 w-72 max-w-[calc(100vw-1.5rem)] bg-surface border border-line-strong rounded-lg shadow-2xl p-1 z-50 animate-fadeIn"
               role="menu"
             >
-              <div className="px-2.5 py-1.5 text-[10px] font-mono uppercase text-slate-400 tracking-wider">
-                Pilih Wilayah Operasi
-              </div>
               {AVAILABLE_AREAS.map((area) => (
                 <button
+                  type="button"
                   key={area.id}
                   onClick={() => {
                     onSelectArea?.(area.id);
-                    setMenuOpen(false);
+                    setAreaMenuOpen(false);
                   }}
-                  className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between transition-colors ${
+                  className={`w-full text-left px-3 py-2.5 rounded-md text-sm ${
                     activeAreaId === area.id
-                      ? "bg-slate-800 text-white font-medium"
-                      : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
+                      ? "bg-raised text-stone-50 font-medium"
+                      : "text-stone-300 hover:bg-raised hover:text-stone-50"
                   }`}
-                  role="menuitem"
+                  role="menuitemradio"
+                  aria-checked={activeAreaId === area.id}
                 >
-                  <div className="flex items-center gap-2 truncate">
-                    <span className={`w-2 h-2 rounded-full ${area.badgeColor}`} />
-                    <span className="truncate">{area.name}</span>
-                  </div>
-                  <span className="text-[10px] font-mono text-slate-400 ml-2 shrink-0">
-                    {area.badge}
-                  </span>
+                  {area.name}
                 </button>
               ))}
             </div>
@@ -157,46 +113,82 @@ export function AppNavbar({
         </div>
       </div>
 
-      {/* Status, Alerts & Quick Access */}
-      <div className="flex items-center gap-2.5">
-        {/* Live WebSocket Status indicator */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/40 border border-emerald-700/50 text-emerald-400 text-xs font-mono">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span className="font-semibold">LIVE LoRa Posko</span>
+      <div className="flex items-center gap-2">
+        <div
+          className="hidden sm:flex items-center gap-2 px-2.5 py-1 text-xs font-medium text-stone-300"
+          role="status"
+        >
+          <span
+            className={`w-2 h-2 rounded-full ${connected ? "bg-ok" : "bg-offline"}`}
+            aria-hidden="true"
+          />
+          <span>{connected ? "Live" : "Terputus"}</span>
         </div>
 
-        {/* Quick Simulator Link for Judges */}
         <Link
           href="/demo"
-          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
+          className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm text-stone-200 rounded-md hover:bg-raised"
         >
-          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <FlaskConical className="w-4 h-4 text-accent" aria-hidden="true" />
           <span>Simulator Juri</span>
         </Link>
 
-        {/* Alert Bell */}
         <Link
           href="/app/alerts"
-          className="relative p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700/80 text-slate-300 transition-colors"
-          title="Pusat Peringatan Dini"
+          className="relative p-2.5 rounded-md text-stone-300 hover:bg-raised"
+          aria-label={alertLabel}
         >
-          <Bell className="w-4 h-4" />
-          {openAlertCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center">
-              {openAlertCount}
+          <Bell className="w-5 h-5" aria-hidden="true" />
+          {count !== null && count > 0 && (
+            <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-crit text-white text-xs font-bold tabular flex items-center justify-center">
+              {count}
             </span>
           )}
         </Link>
 
-        {/* Profile / Admin Indicator */}
+        <ThemeToggle />
+
         <Link
           href="/login"
-          className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/80 font-medium transition-colors"
+          className="text-sm px-3 py-2 rounded-md border border-line-strong text-stone-100 hover:bg-raised"
         >
-          Satgas Posko
+          Masuk
         </Link>
       </div>
+
+      {navOpen && (
+        <nav
+          className="md:hidden absolute left-0 right-0 top-14 bg-surface border-b border-line p-2 z-50 animate-fadeIn"
+          aria-label="Navigasi utama"
+        >
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setNavOpen(false)}
+                aria-current={isActive ? "page" : undefined}
+                className={`flex items-center gap-3 px-3 py-3 rounded-md text-sm ${
+                  isActive ? "bg-raised text-accent font-semibold" : "text-stone-200 hover:bg-raised"
+                }`}
+              >
+                <Icon className="w-4 h-4" aria-hidden="true" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+          <Link
+            href="/demo"
+            onClick={() => setNavOpen(false)}
+            className="flex items-center gap-3 px-3 py-3 rounded-md text-sm text-stone-200 hover:bg-raised"
+          >
+            <FlaskConical className="w-4 h-4 text-accent" aria-hidden="true" />
+            <span>Simulator Juri</span>
+          </Link>
+        </nav>
+      )}
     </header>
   );
 }
-
