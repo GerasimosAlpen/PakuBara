@@ -20,8 +20,8 @@ export const metadata: Metadata = {
     "Pusat komando untuk memantau bara gambut setelah api permukaan padam: titik, kedalaman, arah rambat, dan alert WhatsApp ke regu.",
 };
 
-// Menentukan tema sebelum cetak pertama supaya halaman tidak berkedip. Urutan: pilihan tersimpan, lalu preferensi sistem.
-const THEME_INIT = `(function(){try{var t=localStorage.getItem("pakubara.theme");var d=t?t==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;if(d)document.documentElement.classList.add("dark")}catch(e){}})()`;
+// Menentukan tema sebelum cetak pertama supaya halaman tidak berkedip. Bawaan terang; gelap hanya jika dipilih pengguna.
+const THEME_INIT = `(function(){try{var t=localStorage.getItem("pakubara.theme");if(t==="dark")document.documentElement.classList.add("dark")}catch(e){}})()`;
 
 export default function RootLayout({
   children,

@@ -8,7 +8,7 @@ Bersih dan terbaca. Warna netral hangat sebagai dasar, bara oranye hanya untuk t
 
 ## Tema
 
-- Terang adalah dasar. Gelap tersedia lewat tombol di bilah atas (landing, aplikasi, login) dan mengikuti preferensi sistem pada kunjungan pertama. Pilihan disimpan di `localStorage` (`pakubara.theme`).
+- Terang adalah dasar. Gelap tersedia lewat tombol di bilah atas (landing, aplikasi, login) dan tidak mengikuti preferensi sistem: kunjungan pertama selalu terang. Pilihan disimpan di `localStorage` (`pakubara.theme`).
 - Kelas `dark` pada `<html>` menentukan tema. Skrip kecil di `app/layout.tsx` menetapkannya sebelum cetak pertama supaya tidak berkedip.
 - Skala `stone`, `red`, `amber`, `emerald`, `orange` dipetakan ulang per tema di `app/globals.css` (`--c-*`). Kelas seperti `text-stone-300` atau `bg-red-950/40` otomatis menjadi teks gelap dan latar terang di mode terang. Tulis warna dengan kelas biasa, jangan hex.
 - Grafik ECharts membaca tema lewat `useIsDark()` dan `components/charts/chart-theme.ts`.
