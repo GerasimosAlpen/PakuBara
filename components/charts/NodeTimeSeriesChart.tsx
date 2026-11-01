@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef } from "react";
 import * as echarts from "echarts";
+import { useIsDark } from "@/components/layout/ThemeToggle";
+import { chartColors } from "./chart-theme";
 
 interface ReadingPoint {
   measured_at: string;
@@ -24,12 +26,21 @@ export function NodeTimeSeriesChart({
 }: NodeTimeSeriesChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
+  const isDark = useIsDark();
+  const themeRef = useRef(isDark);
 
   useEffect(() => {
+    const c = chartColors(isDark);
     if (!chartRef.current) return;
 
+    if (chartInstance.current && themeRef.current !== isDark) {
+      chartInstance.current.dispose();
+      chartInstance.current = null;
+    }
+    themeRef.current = isDark;
+
     if (!chartInstance.current) {
-      chartInstance.current = echarts.init(chartRef.current, "dark");
+      chartInstance.current = echarts.init(chartRef.current, isDark ? "dark" : undefined);
     }
 
     const timestamps = data.map((d) => {
@@ -47,7 +58,7 @@ export function NodeTimeSeriesChart({
       title: {
         text: title,
         textStyle: {
-          color: "#E5E5E5",
+          color: c.text,
           fontSize: 13,
           fontWeight: "bold",
         },
@@ -56,14 +67,14 @@ export function NodeTimeSeriesChart({
       },
       tooltip: {
         trigger: "axis",
-        backgroundColor: "#181414",
-        borderColor: "#3D3030",
-        textStyle: { color: "#F3F4F6", fontSize: 11 },
+        backgroundColor: c.tooltipBg,
+        borderColor: c.tooltipBorder,
+        textStyle: { color: c.text, fontSize: 11 },
       },
       legend: {
         data: ["Suhu 20cm", "Suhu 50cm (Bara)", "Suhu 100cm", ...(showCo ? ["CO Gas (ppm)"] : [])],
         top: 24,
-        textStyle: { color: "#A3A3A3", fontSize: 10 },
+        textStyle: { color: c.muted, fontSize: 10 },
       },
       grid: {
         top: 65,
@@ -74,16 +85,16 @@ export function NodeTimeSeriesChart({
       xAxis: {
         type: "category",
         data: timestamps,
-        axisLine: { lineStyle: { color: "#2D2424" } },
-        axisLabel: { color: "#737373", fontSize: 10 },
+        axisLine: { lineStyle: { color: c.axis } },
+        axisLabel: { color: c.faint, fontSize: 10 },
       },
       yAxis: [
         {
           type: "value",
           name: "Suhu (°C)",
           nameTextStyle: { color: "#EA580C", fontSize: 10 },
-          axisLabel: { color: "#A3A3A3", fontSize: 10, formatter: "{value}°" },
-          splitLine: { lineStyle: { color: "#241D1D" } },
+          axisLabel: { color: c.muted, fontSize: 10, formatter: "{value}°" },
+          splitLine: { lineStyle: { color: c.grid } },
         },
         ...(showCo
           ? [
@@ -91,7 +102,7 @@ export function NodeTimeSeriesChart({
                 type: "value" as const,
                 name: "CO (ppm)",
                 nameTextStyle: { color: "#38BDF8", fontSize: 10 },
-                axisLabel: { color: "#737373", fontSize: 10 },
+                axisLabel: { color: c.faint, fontSize: 10 },
                 splitLine: { show: false },
               },
             ]
@@ -107,11 +118,11 @@ export function NodeTimeSeriesChart({
           type: "slider",
           bottom: 5,
           height: 18,
-          borderColor: "#2D2424",
-          backgroundColor: "#121010",
+          borderColor: c.axis,
+          backgroundColor: c.sliderBg,
           fillerColor: "rgba(234, 88, 12, 0.2)",
           handleStyle: { color: "#EA580C" },
-          textStyle: { color: "#737373", fontSize: 9 },
+          textStyle: { color: c.faint, fontSize: 9 },
         },
       ],
       series: [
@@ -178,10 +189,10 @@ export function NodeTimeSeriesChart({
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [data, title, showCo]);
+  }, [data, title, showCo, isDark]);
 
   return (
-    <div className="w-full bg-[#181414] border border-[#2D2424] rounded-xl p-4">
+    <div className="w-full bg-surface border border-line rounded-xl p-4">
       <div ref={chartRef} className="w-full h-72" />
     </div>
   );

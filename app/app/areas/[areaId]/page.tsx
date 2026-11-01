@@ -73,11 +73,11 @@ function AreaDetailContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#121010] text-[#F3F4F6] flex flex-col">
+      <div className="min-h-screen bg-ink text-stone-100 flex flex-col">
         <AppNavbar />
         <div className="flex flex-1">
           <AppSidebar />
-          <div className="flex-1 flex items-center justify-center text-xs font-mono text-neutral-400">
+          <div className="flex-1 flex items-center justify-center text-xs font-mono text-stone-400">
             Memuat ringkasan wilayah pantau...
           </div>
         </div>
@@ -89,7 +89,7 @@ function AreaDetailContent() {
   const streak = summary?.safe_streak_progress;
 
   return (
-    <div className="min-h-screen bg-[#121010] text-[#F3F4F6] flex flex-col select-none">
+    <div className="min-h-screen bg-ink text-stone-100 flex flex-col select-none">
       <AppNavbar activeAreaName={area?.name} />
 
       <div className="flex flex-1 overflow-hidden">
@@ -97,21 +97,21 @@ function AreaDetailContent() {
 
         <main className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Header & PDF Download Button */}
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2D2424] pb-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#2D2424] text-neutral-300 uppercase">
+                <span className="text-xs px-2 py-0.5 rounded bg-line text-stone-300">
                   Profil Wilayah Konsesi
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 uppercase font-bold">
+                <span className="text-xs px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 font-bold">
                   Tingkat Risiko: {area?.risk_level.toUpperCase()}
                 </span>
               </div>
-              <h1 className="text-xl font-bold font-mono text-white flex items-center gap-2">
-                <Layers className="w-5 h-5 text-[#EA580C]" />
+              <h1 className="text-xl font-bold font-mono text-stone-50 flex items-center gap-2">
+                <Layers className="w-5 h-5 text-accent" />
                 {area?.name}
               </h1>
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-stone-400">
                 Kabupaten Kepulauan Meranti, Riau (Luas Grid: 4.2 km² gambut dalam)
               </p>
             </div>
@@ -119,7 +119,7 @@ function AreaDetailContent() {
             <a
               href={`/api/reports/areas/${area?.id}/pdf`}
               download
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#EA580C] hover:bg-[#F97316] text-white text-xs font-semibold shadow-md transition-colors"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-ember-strong hover:bg-ember-strong-hover text-white text-xs font-semibold  transition-colors"
             >
               <FileDown className="w-4 h-4" />
               <span>Cetak Laporan Audit PDF (Permen LHK)</span>
@@ -127,11 +127,11 @@ function AreaDetailContent() {
           </div>
 
           {/* Rantai Hari Aman Permen LHK P.32/2016 Card */}
-          <div className="p-5 rounded-xl bg-[#181414] border border-[#2D2424] space-y-3">
+          <div className="p-5 rounded-xl bg-surface border border-line space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                <h3 className="text-sm font-semibold text-white">
+                <h3 className="text-sm font-semibold text-stone-50">
                   Kepatuhan Standar Pemantauan Permen LHK P.32/2016
                 </h3>
               </div>
@@ -140,14 +140,14 @@ function AreaDetailContent() {
               </span>
             </div>
 
-            <div className="w-full h-3 rounded-full bg-[#121010] border border-[#2D2424] overflow-hidden">
+            <div className="w-full h-3 rounded-full bg-ink border border-line overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full transition-all duration-500"
+                className="h-full bg-ok rounded-full transition-all duration-500"
                 style={{ width: `${streak?.percentage}%` }}
               />
             </div>
 
-            <p className="text-xs text-neutral-400 leading-relaxed">
+            <p className="text-xs text-stone-400 leading-relaxed">
               Berdasarkan regulasi Kementerian LHK, suatu blok gambut hanya dapat diturunkan status siaganya
               apabila tidak ada titik panas atau bara pirolisis aktif selama 3 hari berturut-turut.
             </p>
@@ -157,60 +157,60 @@ function AreaDetailContent() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <AreaStatusDonut statusBreakdown={summary?.status_breakdown} />
 
-            <div className="p-5 rounded-xl bg-[#181414] border border-[#2D2424] space-y-4">
-              <h3 className="text-sm font-semibold text-white uppercase tracking-wider font-mono">
+            <div className="p-5 rounded-xl bg-surface border border-line space-y-4">
+              <h3 className="text-sm font-semibold text-stone-50">
                 Ringkasan Metrik Kawasan
               </h3>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="p-3 rounded-lg bg-[#121010] border border-[#261E1E]">
-                  <span className="text-[10px] text-neutral-500 uppercase font-mono block">
+                <div className="p-3 rounded-lg bg-ink border border-line">
+                  <span className="text-xs text-stone-400 block">
                     Jumlah Titik Pantau
                   </span>
-                  <span className="text-xl font-black font-mono text-white mt-1 block">
+                  <span className="text-xl font-black font-mono text-stone-50 mt-1 block">
                     {summary?.nodes_total} Unit
                   </span>
-                  <span className="text-[10px] text-neutral-400">8 Paku Suhu + 2 Tiang Gas</span>
+                  <span className="text-xs text-stone-400">8 Paku Suhu + 2 Tiang Gas</span>
                 </div>
 
-                <div className="p-3 rounded-lg bg-[#121010] border border-[#261E1E]">
-                  <span className="text-[10px] text-neutral-500 uppercase font-mono block">
+                <div className="p-3 rounded-lg bg-ink border border-line">
+                  <span className="text-xs text-stone-400 block">
                     Alert Aktif Saat Ini
                   </span>
                   <span className="text-xl font-black font-mono text-red-500 mt-1 block">
                     {summary?.open_alerts_count} Insiden
                   </span>
-                  <span className="text-[10px] text-red-400">PK-04 Kedalaman 50cm</span>
+                  <span className="text-xs text-red-400">PK-04 Kedalaman 50cm</span>
                 </div>
 
-                <div className="p-3 rounded-lg bg-[#121010] border border-[#261E1E]">
-                  <span className="text-[10px] text-neutral-500 uppercase font-mono block">
+                <div className="p-3 rounded-lg bg-ink border border-line">
+                  <span className="text-xs text-stone-400 block">
                     Rata-rata Suhu 50cm
                   </span>
                   <span className="text-xl font-black font-mono text-amber-400 mt-1 block">
                     {summary?.avg_temp_50cm}°C
                   </span>
-                  <span className="text-[10px] text-neutral-400">Batas normal &lt; 32°C</span>
+                  <span className="text-xs text-stone-400">Batas normal &lt; 32°C</span>
                 </div>
 
-                <div className="p-3 rounded-lg bg-[#121010] border border-[#261E1E]">
-                  <span className="text-[10px] text-neutral-500 uppercase font-mono block">
+                <div className="p-3 rounded-lg bg-ink border border-line">
+                  <span className="text-xs text-stone-400 block">
                     Konsentrasi CO Tertinggi
                   </span>
-                  <span className="text-xl font-black font-mono text-sky-400 mt-1 block">
+                  <span className="text-xl font-black font-mono text-orange-400 mt-1 block">
                     {summary?.max_co_ppm} ppm
                   </span>
-                  <span className="text-[10px] text-sky-400">Tiang Gas GS-01</span>
+                  <span className="text-xs text-orange-400">Tiang Gas GS-01</span>
                 </div>
               </div>
 
               {/* Kontak Penerima WhatsApp */}
-              <div className="p-3 rounded-lg bg-[#121010] border border-[#261E1E] space-y-1">
-                <div className="flex items-center gap-1.5 text-xs text-neutral-300 font-medium">
+              <div className="p-3 rounded-lg bg-ink border border-line space-y-1">
+                <div className="flex items-center gap-1.5 text-xs text-stone-300 font-medium">
                   <Phone className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Daftar Nomor WhatsApp Alert Area Ini:</span>
                 </div>
-                <div className="text-[11px] font-mono text-neutral-400">
+                <div className="text-xs font-mono text-stone-400">
                   {area?.phone_recipients.join(", ") || "+62 812-3456-7890 (Regu Cepat Siak)"}
                 </div>
               </div>
@@ -226,7 +226,7 @@ export default function AreaDetailPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#121010] flex items-center justify-center text-xs font-mono text-neutral-400">
+        <div className="min-h-screen bg-ink flex items-center justify-center text-xs font-mono text-stone-400">
           Memuat ringkasan wilayah pantau...
         </div>
       }
