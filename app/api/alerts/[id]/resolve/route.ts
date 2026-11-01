@@ -64,14 +64,26 @@ export async function POST(
     });
 
     // Send WhatsApp notification
+    let waSent = false;
+    let resolvedMsg = "";
     if (status === "resolved") {
-      const msg = formatResolvedMessage(alert.node_id, "Blok B Pulau Padang");
-      sendWhatsAppMessage(process.env.FONNTE_DEFAULT_TARGET || "", msg);
+      const area = mockStore.areas.find((a) => a.id === alert.area_id);
+      const areaName = area?.name || "Blok B Pulau Padang";
+      resolvedMsg = formatResolvedMessage(alert.node_id, areaName);
+      const target = result.data.target_phone || process.env.FONNTE_DEFAULT_TARGET || "";
+      if (target) {
+        const waResult = await sendWhatsAppMessage(target, resolvedMsg);
+        waSent = waResult.success;
+      }
     }
 
     return NextResponse.json({
       success: true,
       data: alert,
+      whatsapp: {
+        sent: waSent,
+        message: resolvedMsg,
+      },
     });
   } catch (error) {
     console.error("POST /api/alerts/[id]/resolve error:", error);

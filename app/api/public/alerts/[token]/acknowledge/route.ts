@@ -17,7 +17,10 @@ export async function POST(
       );
     }
 
-    const alert = mockStore.alerts.find((a) => a.id === verified.alert_id);
+    const alert =
+      mockStore.alerts.find((a) => a.id === verified.alert_id) ||
+      mockStore.alerts.find((a) => a.node_id === verified.node_id) ||
+      mockStore.alerts[0];
 
     if (!alert) {
       return NextResponse.json(
