@@ -1,101 +1,117 @@
 "use client";
 
-import React from "react";
+import React, { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Map,
-  Bell,
-  Flame,
-  BarChart3,
-  Radio,
-  FileText,
-  Settings,
-  Sparkles,
-  Compass,
-  Layers,
-  ExternalLink,
-} from "lucide-react";
+import { FlaskConical, ExternalLink, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { NAV_ITEMS } from "./nav-items";
+import { useOpenAlerts } from "./useOpenAlerts";
 
-const NAV_ITEMS = [
-  { href: "/app", label: "Peta Komando", icon: Map },
-  { href: "/app/alerts", label: "Pusat Alert", icon: Flame, badge: "1" },
-  { href: "/app/risk", label: "Prioritas Siaga 1km²", icon: Compass },
-  { href: "/app/areas/a0000000-0000-0000-0000-000000000001", label: "Detail Area", icon: Layers },
-  { href: "/app/analytics", label: "Analitik Karhutla", icon: BarChart3 },
-  { href: "/app/devices", label: "Perangkat & Gateway", icon: Radio },
-  { href: "/app/reports", label: "Laporan Audit", icon: FileText },
-  { href: "/app/settings", label: "Pengaturan Sistem", icon: Settings },
-];
+const STORAGE_KEY = "pakubara.sidebar.collapsed";
+const CHANGE_EVENT = "pakubara:sidebar";
+
+function subscribe(onChange: () => void) {
+  window.addEventListener(CHANGE_EVENT, onChange);
+  return () => window.removeEventListener(CHANGE_EVENT, onChange);
+}
+
+function readCollapsed(): boolean {
+  try {
+    return localStorage.getItem(STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { count } = useOpenAlerts();
+  const collapsed = useSyncExternalStore(subscribe, readCollapsed, () => false);
+
+  const toggle = () => {
+    try {
+      localStorage.setItem(STORAGE_KEY, collapsed ? "0" : "1");
+    } catch {
+      /* penyimpanan tidak tersedia, pilihan tidak diingat */
+    }
+    window.dispatchEvent(new Event(CHANGE_EVENT));
+  };
 
   return (
-    <aside className="w-64 border-r border-slate-800 bg-slate-900 hidden md:flex flex-col justify-between shrink-0 h-[calc(100vh-3.5rem)] overflow-y-auto select-none">
-      <div className="p-3 space-y-1">
-        <div className="text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-400 px-3 py-2">
-          Pusat Operasi Lapangan
-        </div>
-
+    <aside
+      className={`${collapsed ? "w-14" : "w-60"} border-r border-line bg-surface hidden md:flex flex-col justify-between shrink-0 h-[calc(100vh-3.5rem)] overflow-y-auto transition-[width] duration-150`}
+      aria-label="Navigasi utama"
+    >
+      <nav className="p-2 space-y-0.5">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
+          const showCount = "showsAlertCount" in item && count !== null && count > 0;
 
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+              title={collapsed ? item.label : undefined}
+              aria-current={isActive ? "page" : undefined}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors ${
                 isActive
-                  ? "bg-slate-800 text-sky-400 font-semibold border-l-2 border-sky-500"
-                  : "text-slate-300 hover:bg-slate-800/70 hover:text-white"
+                  ? "bg-raised text-accent font-semibold"
+                  : "text-stone-300 hover:bg-raised hover:text-stone-50"
               }`}
             >
-              <div className="flex items-center gap-3">
-                <Icon className={`w-4 h-4 ${isActive ? "text-sky-400" : "text-slate-400"}`} />
-                <span>{item.label}</span>
-              </div>
-              {item.badge && (
-                <span className="px-1.5 py-0.5 rounded-full bg-red-950/80 text-red-400 border border-red-800/80 text-[10px] font-bold">
-                  {item.badge}
+              <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
+              {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
+              {showCount && (
+                <span
+                  className={`${collapsed ? "sr-only" : "tabular text-xs font-bold px-1.5 py-0.5 rounded bg-crit text-white"}`}
+                >
+                  {count}
+                  {collapsed ? " alert terbuka" : ""}
                 </span>
               )}
             </Link>
           );
         })}
-      </div>
+      </nav>
 
-      {/* Simulator, Status Publik & Footer */}
-      <div className="p-3 border-t border-slate-800 space-y-2">
+      <div className="p-2 border-t border-line space-y-0.5">
         <Link
           href="/demo"
-          className="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700/80 text-xs font-medium transition-colors"
+          title={collapsed ? "Simulator Juri" : undefined}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-stone-200 hover:bg-raised transition-colors"
         >
-          <div className="flex items-center gap-2.5">
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            <span>Simulator Juri</span>
-          </div>
-          <span className="text-[10px] font-mono bg-slate-700/80 px-1.5 py-0.5 rounded text-slate-300 border border-slate-600/50">
-            DEMO
-          </span>
+          <FlaskConical className="w-4 h-4 shrink-0 text-accent" aria-hidden="true" />
+          {!collapsed && <span>Simulator Juri</span>}
         </Link>
 
         <Link
           href="/status/blok-b-pulau-padang"
           target="_blank"
-          className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 text-xs transition-colors hover:bg-slate-800"
+          rel="noopener"
+          title={collapsed ? "Status Publik Desa" : undefined}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-stone-400 hover:text-stone-100 hover:bg-raised transition-colors"
         >
-          <span>Status Publik Desa</span>
-          <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+          <ExternalLink className="w-4 h-4 shrink-0" aria-hidden="true" />
+          {!collapsed && <span>Status Publik Desa</span>}
+          {collapsed && <span className="sr-only">Status Publik Desa (tab baru)</span>}
         </Link>
 
-        <div className="px-3 pt-2 text-[10px] text-slate-400 font-mono">
-          <div>Posko Gambut Pulau Padang</div>
-          <div>Koordinat: 1.234°S, 102.678°E</div>
-        </div>
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label={collapsed ? "Lebarkan sidebar" : "Ciutkan sidebar"}
+          aria-expanded={!collapsed}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-stone-400 hover:text-stone-100 hover:bg-raised transition-colors"
+        >
+          {collapsed ? (
+            <PanelLeftOpen className="w-4 h-4 shrink-0" aria-hidden="true" />
+          ) : (
+            <PanelLeftClose className="w-4 h-4 shrink-0" aria-hidden="true" />
+          )}
+          {!collapsed && <span>Ciutkan</span>}
+        </button>
       </div>
     </aside>
   );
 }
-

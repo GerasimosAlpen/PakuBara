@@ -1,24 +1,70 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
+import { useOpenAlerts } from "@/components/layout/useOpenAlerts";
 import { CommandMap, MapNode, MapHotspot } from "@/components/map/CommandMap";
 import { TimelineReplayBar } from "@/components/map/TimelineReplayBar";
+import { ImageSlot } from "@/components/ui/ImageSlot";
 import { InMapSimulatorModal } from "@/components/simulator/InMapSimulatorModal";
-import {
-  Flame,
-  Radio,
-  AlertTriangle,
-  ShieldCheck,
-  ArrowUpRight,
-  ChevronRight,
-  X,
-  Droplets,
-  Activity,
-  Sparkles,
-} from "lucide-react";
+import { Flame, ArrowUpRight, X, FlaskConical, TriangleAlert } from "lucide-react";
+
+interface AreaSummary {
+  open_alerts_count: number;
+  safe_streak_progress: { current_days: number; target_days: number };
+}
+
+interface HotspotFeature {
+  id?: string;
+  geometry?: { coordinates?: number[] };
+  properties?: { id?: string; frp?: number; confidence?: string };
+}
+
+interface KpiItem {
+  label: string;
+  value: string;
+  note: string;
+  tone: string;
+}
+
+interface MapData {
+  nodes: MapNode[];
+  hotspots: MapHotspot[];
+}
+
+async function fetchMapData(): Promise<MapData> {
+  const [nodesRes, hotspotsRes] = await Promise.all([
+    fetch("/api/nodes"),
+    fetch("/api/layers/hotspots"),
+  ]);
+  if (!nodesRes.ok) throw new Error(`Server membalas ${nodesRes.status}`);
+  const nodesData = await nodesRes.json();
+  const hotspotsData = hotspotsRes.ok ? await hotspotsRes.json() : [];
+
+  const nodes: MapNode[] = Array.isArray(nodesData?.data)
+    ? nodesData.data
+    : Array.isArray(nodesData)
+    ? nodesData
+    : [];
+
+  const hotspots: MapHotspot[] = Array.isArray(hotspotsData?.data)
+    ? hotspotsData.data
+    : Array.isArray(hotspotsData?.features)
+    ? hotspotsData.features.map((f: HotspotFeature) => ({
+        id: f.id || f.properties?.id,
+        lat: f.geometry?.coordinates?.[1] || 0,
+        lon: f.geometry?.coordinates?.[0] || 0,
+        frp: f.properties?.frp || 20,
+        confidence: (f.properties?.confidence || "high") as MapHotspot["confidence"],
+      }))
+    : Array.isArray(hotspotsData)
+    ? hotspotsData
+    : [];
+
+  return { nodes, hotspots };
+}
 
 export default function AppCommandPage() {
   const [nodes, setNodes] = useState<MapNode[]>([]);
@@ -26,56 +72,61 @@ export default function AppCommandPage() {
   const [selectedNode, setSelectedNode] = useState<MapNode | null>(null);
   const [selectedAreaId, setSelectedAreaId] = useState<string>("a0000000-0000-0000-0000-000000000001");
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [summaryState, setSummaryState] = useState<{ areaId: string; data: AreaSummary | null } | null>(null);
   const [showSimulatorModal, setShowSimulatorModal] = useState<boolean>(false);
+  const { count: allOpenAlerts } = useOpenAlerts();
 
-  // Fetch nodes & hotspots
-  const loadData = async () => {
-    try {
-      const [nodesRes, hotspotsRes] = await Promise.all([
-        fetch("/api/nodes"),
-        fetch("/api/layers/hotspots"),
-      ]);
-      const nodesData = await nodesRes.json();
-      const hotspotsData = await hotspotsRes.json();
-
-      const nodesList = Array.isArray(nodesData?.data)
-        ? nodesData.data
-        : Array.isArray(nodesData)
-        ? nodesData
-        : [];
-      setNodes(nodesList);
-
-      const hotspotsList = Array.isArray(hotspotsData?.data)
-        ? hotspotsData.data
-        : Array.isArray(hotspotsData?.features)
-        ? hotspotsData.features.map((f: any) => ({
-            id: f.id || f.properties?.id,
-            lat: f.geometry?.coordinates?.[1] || 0,
-            lon: f.geometry?.coordinates?.[0] || 0,
-            frp: f.properties?.frp || 20,
-            confidence: f.properties?.confidence || "high",
-          }))
-        : Array.isArray(hotspotsData)
-        ? hotspotsData
-        : [];
-      setHotspots(hotspotsList);
-    } catch (err) {
-      console.error("Gagal memuat data peta komando:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData().then(() => {
-      // Select initial focus node
-      setNodes((currentNodes) => {
-        const initialNode = currentNodes.find((n: MapNode) => n.id === "PK-04") || currentNodes[0];
-        if (initialNode) setSelectedNode(initialNode);
-        return currentNodes;
-      });
+  const applyMapData = useCallback((data: MapData) => {
+    setNodes(data.nodes);
+    setHotspots(data.hotspots);
+    setSelectedNode((current) => {
+      if (current) return current;
+      return data.nodes.find((n) => n.id === "PK-04") || data.nodes[0] || null;
     });
   }, []);
+
+  const loadData = useCallback(() => {
+    return fetchMapData()
+      .then(applyMapData)
+      .catch((err) => setLoadError(err instanceof Error ? err.message : "Koneksi gagal"))
+      .finally(() => setLoading(false));
+  }, [applyMapData]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchMapData()
+      .then((data) => {
+        if (!cancelled) applyMapData(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setLoadError(err instanceof Error ? err.message : "Koneksi gagal");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [applyMapData]);
+
+  useEffect(() => {
+    if (selectedAreaId === "all") return;
+    let cancelled = false;
+    fetch(`/api/areas/${selectedAreaId}/summary`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (!cancelled) setSummaryState({ areaId: selectedAreaId, data: json?.success ? json.data : null });
+      })
+      .catch(() => {
+        if (!cancelled) setSummaryState({ areaId: selectedAreaId, data: null });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedAreaId]);
+
+  const summary = summaryState?.areaId === selectedAreaId ? summaryState.data : null;
 
   const handleSelectArea = (areaId: string) => {
     setSelectedAreaId(areaId);
@@ -100,7 +151,57 @@ export default function AppCommandPage() {
   const displayedNodes = isAll ? nodes : nodes.filter((n) => n.area_id === selectedAreaId);
   const probeCount = displayedNodes.filter((n) => n.type === "probe").length;
   const gasCount = displayedNodes.filter((n) => n.type === "gas").length;
-  const activeNodesCount = displayedNodes.filter((n) => n.status === "active").length;
+  const activeNodes = displayedNodes.filter((n) => n.status === "active");
+  const noData = loading || loadError !== null;
+
+  const openAlerts = isAll ? allOpenAlerts : summary?.open_alerts_count ?? null;
+  const stable = summary?.safe_streak_progress;
+
+  const kpis: KpiItem[] = [
+    {
+      label: "Titik dipantau",
+      value: noData ? "-" : String(displayedNodes.length),
+      note: noData ? "Belum ada data" : `${probeCount} paku, ${gasCount} tiang gas`,
+      tone: "text-stone-50",
+    },
+    {
+      label: "Bara aktif",
+      value: noData ? "-" : String(activeNodes.length),
+      note: noData
+        ? "Belum ada data"
+        : activeNodes.length > 0
+        ? activeNodes.map((n) => n.id).join(", ")
+        : "Tidak ada titik aktif",
+      tone: activeNodes.length > 0 ? "text-red-400" : "text-stone-50",
+    },
+    {
+      label: "Alert terbuka",
+      value: openAlerts === null ? "-" : String(openAlerts),
+      note: openAlerts === null ? "Belum ada data" : isAll ? "Semua wilayah" : "Di wilayah ini",
+      tone: openAlerts ? "text-accent" : "text-stone-50",
+    },
+    {
+      label: "Hari stabil",
+      value: stable ? `${stable.current_days} dari ${stable.target_days}` : "-",
+      note: stable ? "Syarat area dinyatakan aman" : isAll ? "Pilih satu wilayah" : "Belum ada data",
+      tone: "text-stone-50",
+    },
+  ];
+
+  const renderKpis = (layout: "strip" | "panel") => (
+    <dl className={layout === "strip" ? "grid grid-cols-2 gap-2" : "space-y-3"}>
+      {kpis.map((k) => (
+        <div
+          key={k.label}
+          className={layout === "strip" ? "p-3 rounded-lg bg-surface border border-line" : ""}
+        >
+          <dt className="text-xs text-stone-300">{k.label}</dt>
+          <dd className={`font-mono tabular text-2xl font-bold leading-tight ${k.tone}`}>{k.value}</dd>
+          <dd className="text-xs text-stone-400 truncate">{k.note}</dd>
+        </div>
+      ))}
+    </dl>
+  );
 
   const spreadVector = isKalimantan
     ? {
@@ -117,7 +218,7 @@ export default function AppCommandPage() {
       };
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col select-none">
+    <div className="min-h-screen bg-ink text-stone-100 flex flex-col select-none">
       <AppNavbar
         activeAreaName={activeAreaName}
         activeAreaId={selectedAreaId}
@@ -127,85 +228,10 @@ export default function AppCommandPage() {
       <div className="flex flex-1 overflow-hidden">
         <AppSidebar />
 
-        {/* Command Center Main Workspace */}
-        <main className="flex-1 flex flex-col overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
-          {/* 4 Strip KPI Ringkas */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-            <div className="p-3 sm:p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
-                  Titik Pantau LoRa
-                </span>
-                <span className="text-lg sm:text-xl font-mono font-bold text-slate-100">
-                  {displayedNodes.length || (isAll ? 20 : 10)}
-                </span>
-                <span className="text-[10px] text-emerald-400 block mt-0.5 font-medium">
-                  {probeCount || (isAll ? 16 : 8)} Paku + {gasCount || (isAll ? 4 : 2)} Tiang Gas
-                </span>
-              </div>
-              <div className="p-2 sm:p-2.5 rounded-lg bg-slate-800 border border-slate-700/70 text-emerald-400">
-                <Radio className="w-4 h-4 sm:w-5 sm:h-5" />
-              </div>
-            </div>
+        <main className="flex-1 flex flex-col min-w-0">
+          <div className="lg:hidden p-3">{renderKpis("strip")}</div>
 
-            <div className="p-3 sm:p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
-                  Bara Aktif (≥60°C)
-                </span>
-                <span className="text-lg sm:text-xl font-mono font-bold text-red-400">
-                  {activeNodesCount || (isAll ? 2 : 1)} Titik
-                </span>
-                <span className="text-[10px] text-red-300 block mt-0.5 font-medium truncate max-w-[150px]">
-                  {isKalimantan
-                    ? "PK-K03 (89.6°C, 50cm)"
-                    : isAll
-                    ? "PK-04 & PK-K03 Aktif"
-                    : "PK-04 (87.3°C, 50cm)"}
-                </span>
-              </div>
-              <div className="p-2 sm:p-2.5 rounded-lg bg-red-950/60 border border-red-800/60 text-red-400">
-                <Flame className="w-4 h-4 sm:w-5 sm:h-5" />
-              </div>
-            </div>
-
-            <div className="p-3 sm:p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
-                  Alert Terbuka
-                </span>
-                <span className="text-lg sm:text-xl font-mono font-bold text-amber-400">
-                  {activeNodesCount || (isAll ? 2 : 1)} Insiden
-                </span>
-                <span className="text-[10px] text-amber-300 block mt-0.5 font-medium">
-                  {isKalimantan ? "Sebangau Siaga Darurat" : "Menunggu respon regu"}
-                </span>
-              </div>
-              <div className="p-2 sm:p-2.5 rounded-lg bg-amber-950/60 border border-amber-800/60 text-amber-400">
-                <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
-              </div>
-            </div>
-
-            <div className="p-3 sm:p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
-                  Kawasan Stabil
-                </span>
-                <span className="text-lg sm:text-xl font-mono font-bold text-sky-400">
-                  {isKalimantan ? "0 dari 3 Hari" : "1 dari 3 Hari"}
-                </span>
-                <span className="text-[10px] text-slate-400 block mt-0.5">
-                  Permen LHK P.32/2016
-                </span>
-              </div>
-              <div className="p-2 sm:p-2.5 rounded-lg bg-slate-800 border border-slate-700/70 text-sky-400">
-                <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
-              </div>
-            </div>
-          </div>
-
-          {/* Interactive Map & Floating Drawer Section */}
-          <div className="relative flex-1 min-h-[500px] sm:min-h-[560px] rounded-xl overflow-hidden border border-slate-800">
+          <div className="relative flex-1 min-h-[520px] lg:h-[calc(100vh-3.5rem)] overflow-hidden">
             <CommandMap
               nodes={nodes}
               hotspots={hotspots}
@@ -218,110 +244,187 @@ export default function AppCommandPage() {
               wind={{ speedKmh: 14.2, directionDeg: isKalimantan ? 310 : 220 }}
             />
 
-            {/* Timeline Scrub Bar (Docked at Map Bottom) */}
+            {/* Panel KPI melayang (desktop) */}
+            <section
+              aria-label="Ringkasan wilayah"
+              className="hidden lg:block absolute top-28 left-3 z-20 w-56 bg-panel backdrop-blur-md border border-line rounded-lg p-4"
+            >
+              {renderKpis("panel")}
+            </section>
+
+            {loading && (
+              <div
+                role="status"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 px-4 py-2 rounded-md bg-surface border border-line text-sm text-stone-200"
+              >
+                Memuat titik pantau...
+              </div>
+            )}
+
+            {loadError && (
+              <div
+                role="alert"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 w-[calc(100%-1.5rem)] max-w-md p-4 rounded-lg bg-surface border border-crit text-sm"
+              >
+                <div className="flex items-start gap-3">
+                  <TriangleAlert className="w-5 h-5 text-red-400 shrink-0 mt-0.5" aria-hidden="true" />
+                  <div className="flex-1">
+                    <p className="font-semibold text-stone-50">Data titik pantau gagal dimuat</p>
+                    <p className="text-stone-300 mt-1">
+                      {loadError}. Peta menampilkan data terakhir yang berhasil diambil, jika ada.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLoadError(null);
+                        setLoading(true);
+                        loadData();
+                      }}
+                      className="mt-3 px-3 py-2 rounded-md bg-ember-strong hover:bg-ember-strong-hover text-white font-semibold"
+                    >
+                      Coba lagi
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!loading && !loadError && displayedNodes.length === 0 && (
+              <div
+                role="status"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 w-[calc(100%-1.5rem)] max-w-md p-4 rounded-lg bg-surface border border-line text-sm"
+              >
+                <ImageSlot
+                  src="/images/kosong-titik-pantau.webp"
+                  alt="Lahan gambut bekas terbakar yang belum dipasangi paku sensor"
+                  width={1200}
+                  height={600}
+                  label="belum ada titik pantau"
+                  className="mb-3"
+                />
+                <p className="font-semibold text-stone-50">Belum ada titik pantau di wilayah ini</p>
+                <p className="text-stone-300 mt-1">
+                  Daftarkan paku suhu atau tiang gas di halaman Perangkat, atau jalankan skenario di Simulator Juri.
+                </p>
+                <div className="mt-3 flex gap-2">
+                  <Link
+                    href="/app/devices"
+                    className="px-3 py-2 rounded-md bg-ember-strong hover:bg-ember-strong-hover text-white font-semibold"
+                  >
+                    Buka Perangkat
+                  </Link>
+                  <Link
+                    href="/demo"
+                    className="px-3 py-2 rounded-md border border-line-strong text-stone-100 hover:bg-raised"
+                  >
+                    Simulator Juri
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Bilah waktu di dasar peta */}
             <div className="absolute bottom-4 left-3 right-3 sm:left-4 sm:right-4 z-20 max-w-2xl mx-auto">
               <TimelineReplayBar
-                onTimeChange={(hourOffset) => {
-                  // scrub handling
+                onTimeChange={() => {
+                  // belum terhubung ke data replay
                 }}
               />
             </div>
 
-            {/* Floating Drawer Detail Titik Terpilih */}
+            {/* Panel Detail Titik terpilih */}
             {selectedNode && (
-              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-72 sm:w-80 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-xl p-3.5 sm:p-4 shadow-2xl animate-fadeIn space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+              <div className="absolute z-20 inset-x-0 bottom-0 max-h-[55%] sm:inset-x-auto sm:bottom-auto sm:top-4 sm:right-4 sm:w-80 sm:max-h-[calc(100%-2rem)] overflow-y-auto bg-panel backdrop-blur-md border border-line rounded-t-lg sm:rounded-lg p-4 shadow-2xl animate-fadeIn space-y-3">
+                <div className="flex items-center justify-between border-b border-line pb-3">
                   <div className="flex items-center gap-2">
                     <span
                       className={`w-2.5 h-2.5 rounded-full ${
                         selectedNode.status === "active"
-                          ? "bg-red-500"
+                          ? "bg-crit"
                           : selectedNode.status === "watch"
-                          ? "bg-amber-400"
-                          : "bg-emerald-400"
+                          ? "bg-watch"
+                          : "bg-ok"
                       }`}
+                      aria-hidden="true"
                     />
-                    <span className="text-sm font-bold font-mono text-slate-100">
-                      TITIK {selectedNode.id}
+                    <span className="text-sm font-bold font-mono text-stone-50">
+                      Titik {selectedNode.id}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      ({selectedNode.type === "probe" ? "Paku Suhu" : "Tiang Gas"})
+                    <span className="text-xs text-stone-400">
+                      {selectedNode.type === "probe" ? "Paku suhu" : "Tiang gas"}
                     </span>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setSelectedNode(null)}
-                    className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                    aria-label="Tutup detail titik"
+                    className="w-11 h-11 -mr-2 flex items-center justify-center rounded-md hover:bg-raised text-stone-400 hover:text-stone-50"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                  <div className="p-2 rounded-lg bg-slate-950 border border-slate-800">
-                    <span className="text-[9px] text-slate-400 block">Suhu 20cm</span>
-                    <span className="font-mono font-bold text-amber-400">
-                      {selectedNode.last_reading.t20 ?? "-"}°
-                    </span>
-                  </div>
-                  <div className="p-2 rounded-lg bg-slate-950 border border-slate-800">
-                    <span className="text-[9px] text-slate-400 block">Suhu 50cm</span>
-                    <span className="font-mono font-bold text-red-400">
-                      {selectedNode.last_reading.t50 ?? "-"}°
-                    </span>
-                  </div>
-                  <div className="p-2 rounded-lg bg-slate-950 border border-slate-800">
-                    <span className="text-[9px] text-slate-400 block">Suhu 100cm</span>
-                    <span className="font-mono font-bold text-emerald-400">
-                      {selectedNode.last_reading.t100 ?? "-"}°
-                    </span>
-                  </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  {[
+                    { label: "20 cm", value: selectedNode.last_reading.t20, tone: "text-watch" },
+                    { label: "50 cm", value: selectedNode.last_reading.t50, tone: "text-red-400" },
+                    { label: "100 cm", value: selectedNode.last_reading.t100, tone: "text-ok" },
+                  ].map((d) => (
+                    <div key={d.label} className="p-2 rounded-md bg-ink border border-line">
+                      <span className="text-xs text-stone-300 block">{d.label}</span>
+                      <span className={`font-mono tabular font-bold ${d.tone}`}>
+                        {d.value ?? "-"}°
+                      </span>
+                    </div>
+                  ))}
                 </div>
 
                 {selectedNode.last_reading.co !== undefined && (
-                  <div className="p-2 rounded-lg bg-slate-950 border border-slate-800 flex justify-between items-center text-xs">
-                    <span className="text-slate-400">Gas Karbon Monoksida:</span>
-                    <span className="font-mono font-bold text-sky-400">
+                  <div className="p-2.5 rounded-md bg-ink border border-line flex justify-between items-center text-sm">
+                    <span className="text-stone-300">Karbon monoksida</span>
+                    <span className="font-mono tabular font-bold text-stone-50">
                       {selectedNode.last_reading.co} ppm
                     </span>
                   </div>
                 )}
 
                 {selectedNode.id === "PK-04" && (
-                  <div className="p-2.5 rounded-lg bg-red-950/40 border border-red-800/50 text-[11px] text-red-200 space-y-1">
-                    <div className="font-bold flex items-center gap-1.5 text-red-300">
-                      <Flame className="w-3.5 h-3.5 text-red-400" />
-                      <span>Prediksi Rambat Bara Aktif</span>
+                  <div className="p-3 rounded-md bg-crit/10 border border-crit/40 text-sm text-red-100 space-y-1">
+                    <div className="font-bold flex items-center gap-2 text-red-200">
+                      <Flame className="w-4 h-4" aria-hidden="true" />
+                      <span>Prediksi rambat bara aktif</span>
                     </div>
-                    <div>Arah: 45° (Timur Laut) | ETA: 11.9 jam ke PK-05</div>
-                    <div>Rekomendasi: Injeksi pipa air 600L pada kedalaman 50cm</div>
+                    <div>Arah 45° (timur laut), ETA 11,9 jam ke PK-05</div>
+                    <div>Saran: injeksi air 600 L pada kedalaman 50 cm</div>
                   </div>
                 )}
 
                 {selectedNode.id === "PK-K03" && (
-                  <div className="p-2.5 rounded-lg bg-red-950/40 border border-red-800/50 text-[11px] text-red-200 space-y-1">
-                    <div className="font-bold flex items-center gap-1.5 text-red-300">
-                      <Flame className="w-3.5 h-3.5 text-red-400" />
-                      <span>Prediksi Rambat Bara Aktif (Sebangau)</span>
+                  <div className="p-3 rounded-md bg-crit/10 border border-crit/40 text-sm text-red-100 space-y-1">
+                    <div className="font-bold flex items-center gap-2 text-red-200">
+                      <Flame className="w-4 h-4" aria-hidden="true" />
+                      <span>Prediksi rambat bara aktif (Sebangau)</span>
                     </div>
-                    <div>Arah: 135° (Tenggara) | ETA: 9.2 jam ke koridor PK-K04</div>
-                    <div>Rekomendasi: Injeksi pipa air 800L pada kedalaman 50cm</div>
+                    <div>Arah 135° (tenggara), ETA 9,2 jam ke koridor PK-K04</div>
+                    <div>Saran: injeksi air 800 L pada kedalaman 50 cm</div>
                   </div>
                 )}
 
                 <button
+                  type="button"
                   onClick={() => setShowSimulatorModal(true)}
-                  className="w-full py-2 rounded-lg bg-amber-950/70 hover:bg-amber-900 border border-amber-600/60 text-amber-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                  className="w-full py-2.5 rounded-md border border-line-strong hover:bg-raised text-stone-100 text-sm font-medium flex items-center justify-center gap-2"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Uji Simulasi Bara pada Titik Ini</span>
+                  <FlaskConical className="w-4 h-4 text-accent" aria-hidden="true" />
+                  <span>Uji simulasi bara di titik ini</span>
                 </button>
 
                 <Link
                   href={`/app/nodes/${selectedNode.id}`}
-                  className="w-full py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                  className="w-full py-2.5 rounded-md bg-ember-strong hover:bg-ember-strong-hover text-white text-sm font-semibold flex items-center justify-center gap-2"
                 >
-                  <span>Buka Grafik & Analisis Lengkap</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
+                  <span>Buka grafik dan analisis</span>
+                  <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
                 </Link>
               </div>
             )}
@@ -329,7 +432,6 @@ export default function AppCommandPage() {
         </main>
       </div>
 
-      {/* In-Map Simulator Modal for Judges */}
       <InMapSimulatorModal
         isOpen={showSimulatorModal}
         onClose={() => setShowSimulatorModal(false)}
@@ -339,4 +441,3 @@ export default function AppCommandPage() {
     </div>
   );
 }
-

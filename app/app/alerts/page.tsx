@@ -101,7 +101,7 @@ export default function AlertsCenterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121010] text-[#F3F4F6] flex flex-col select-none">
+    <div className="min-h-screen bg-ink text-stone-100 flex flex-col select-none">
       <AppNavbar />
 
       <div className="flex flex-1 overflow-hidden">
@@ -109,19 +109,19 @@ export default function AlertsCenterPage() {
 
         <main className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Header */}
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2D2424] pb-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
             <div>
-              <h1 className="text-xl font-bold font-mono text-white flex items-center gap-2">
+              <h1 className="text-xl font-bold font-mono text-stone-50 flex items-center gap-2">
                 <Flame className="w-5 h-5 text-red-500" />
                 PUSAT PERINGATAN DINI BARA
               </h1>
-              <p className="text-xs text-neutral-400 mt-1">
+              <p className="text-xs text-stone-400 mt-1">
                 Daftar peringatan hasil fusi multi-sensor dengan verifikasi 2 dari 3 sinyal.
               </p>
             </div>
 
             {/* Status Tabs */}
-            <div className="flex items-center gap-1.5 bg-[#181414] p-1 rounded-xl border border-[#2D2424] text-xs">
+            <div className="flex items-center gap-1.5 bg-surface p-1 rounded-xl border border-line text-xs">
               {[
                 { id: "all", label: "Semua" },
                 { id: "open", label: "Terbuka" },
@@ -133,8 +133,8 @@ export default function AlertsCenterPage() {
                   onClick={() => setFilterStatus(tab.id)}
                   className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
                     filterStatus === tab.id
-                      ? "bg-[#EA580C] text-white"
-                      : "text-neutral-400 hover:text-white"
+                      ? "bg-ember-strong text-white"
+                      : "text-stone-400 hover:text-stone-50"
                   }`}
                 >
                   {tab.label}
@@ -145,14 +145,14 @@ export default function AlertsCenterPage() {
 
           {/* Alert Cards */}
           {loading ? (
-            <div className="text-xs font-mono text-neutral-400 text-center py-12">
+            <div className="text-xs font-mono text-stone-400 text-center py-12">
               Memuat data peringatan...
             </div>
           ) : alerts.length === 0 ? (
-            <div className="p-8 text-center rounded-xl bg-[#181414] border border-[#2D2424] space-y-2">
+            <div className="p-8 text-center rounded-xl bg-surface border border-line space-y-2">
               <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
-              <div className="text-sm font-semibold text-white">Tidak Ada Peringatan Ditemukan</div>
-              <p className="text-xs text-neutral-400">
+              <div className="text-sm font-semibold text-stone-50">Tidak Ada Peringatan Ditemukan</div>
+              <p className="text-xs text-stone-400">
                 Semua titik sensor berada dalam batas normal atau telah diselesaikan.
               </p>
             </div>
@@ -163,31 +163,31 @@ export default function AlertsCenterPage() {
                   key={al.id}
                   className={`p-5 rounded-xl border transition-all ${
                     al.status === "open"
-                      ? "bg-[#1F1414] border-red-800/60 shadow-lg shadow-red-950/20"
-                      : "bg-[#181414] border-[#2D2424]"
+                      ? "bg-raised border-red-800/60  "
+                      : "bg-surface border-line"
                   }`}
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                     <div className="flex items-center gap-2.5">
                       <span
-                        className={`text-[10px] font-mono px-2.5 py-0.5 rounded font-bold uppercase ${
-                          al.level === "active" ? "bg-red-600 text-white animate-pulse" : "bg-amber-600 text-white"
+                        className={`text-xs px-2.5 py-0.5 rounded font-bold ${
+                          al.level === "active" ? "bg-red-600 text-white" : "bg-amber-600 text-white"
                         }`}
                       >
                         {al.level === "active" ? "Bara Aktif" : "Waspada"}
                       </span>
-                      <span className="text-sm font-bold font-mono text-white">
+                      <span className="text-sm font-bold font-mono text-stone-50">
                         Node {al.node_id}
                       </span>
-                      <span className="text-xs text-neutral-400">
+                      <span className="text-xs text-stone-400">
                         ({al.id.slice(0, 8)}...)
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs font-mono text-neutral-400">
+                    <div className="flex items-center gap-2 text-xs font-mono text-stone-400">
                       <Clock className="w-3.5 h-3.5" />
                       <span>{new Date(al.created_at).toLocaleString("id-ID")}</span>
-                      <span className="px-2 py-0.5 rounded bg-[#241D1D] text-neutral-300 font-semibold uppercase">
+                      <span className="px-2 py-0.5 rounded bg-raised text-stone-300 font-semibold">
                         {al.status}
                       </span>
                     </div>
@@ -195,14 +195,14 @@ export default function AlertsCenterPage() {
 
                   {/* Fusi 3 Sinyal Badges */}
                   <div className="flex flex-wrap items-center gap-2 mb-4 text-xs font-mono">
-                    <span className="text-[10px] text-neutral-400 uppercase font-sans">
+                    <span className="text-xs text-stone-400 font-sans">
                       Validasi Sinyal:
                     </span>
                     <span
                       className={`px-2 py-0.5 rounded border ${
                         al.signals.temp_trend
                           ? "bg-red-950/60 border-red-700 text-red-300"
-                          : "bg-neutral-900 border-neutral-800 text-neutral-500"
+                          : "bg-stone-900 border-stone-800 text-stone-400"
                       }`}
                     >
                       S1: Laju Suhu {al.signals.temp_trend ? "(Lolos)" : "(Gagal)"}
@@ -211,7 +211,7 @@ export default function AlertsCenterPage() {
                       className={`px-2 py-0.5 rounded border ${
                         al.signals.neighbor
                           ? "bg-amber-950/60 border-amber-700 text-amber-300"
-                          : "bg-neutral-900 border-neutral-800 text-neutral-500"
+                          : "bg-stone-900 border-stone-800 text-stone-400"
                       }`}
                     >
                       S2: Korelasi Tetangga {al.signals.neighbor ? "(Lolos)" : "(Gagal)"}
@@ -219,8 +219,8 @@ export default function AlertsCenterPage() {
                     <span
                       className={`px-2 py-0.5 rounded border ${
                         al.signals.co
-                          ? "bg-sky-950/60 border-sky-700 text-sky-300"
-                          : "bg-neutral-900 border-neutral-800 text-neutral-500"
+                          ? "bg-orange-950/60 border-orange-700 text-orange-300"
+                          : "bg-stone-900 border-stone-800 text-stone-400"
                       }`}
                     >
                       S3: Sensor Gas CO {al.signals.co ? "(Lolos)" : "(Gagal)"}
@@ -228,35 +228,35 @@ export default function AlertsCenterPage() {
                   </div>
 
                   {/* Parameter Snapshot Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-[#121010] p-3 rounded-lg border border-[#261E1E] mb-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-ink p-3 rounded-lg border border-line mb-4">
                     <div>
-                      <span className="text-[10px] text-neutral-500 block">Suhu Gambut 50cm</span>
+                      <span className="text-xs text-stone-400 block">Suhu Gambut 50cm</span>
                       <span className="font-mono font-bold text-red-400">
                         {al.snapshot.t50 ?? "-"}°C
                       </span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-neutral-500 block">Konsentrasi CO</span>
-                      <span className="font-mono font-bold text-sky-400">
+                      <span className="text-xs text-stone-400 block">Konsentrasi CO</span>
+                      <span className="font-mono font-bold text-orange-400">
                         {al.snapshot.co_ppm ?? "-"} ppm
                       </span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-neutral-500 block">Laju Pemanasan</span>
+                      <span className="text-xs text-stone-400 block">Laju Pemanasan</span>
                       <span className="font-mono font-bold text-amber-400">
                         +{al.snapshot.rate ?? "-"}°C/j
                       </span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-neutral-500 block">Prediksi Arah & ETA</span>
-                      <span className="font-mono font-bold text-white">
+                      <span className="text-xs text-stone-400 block">Prediksi Arah & ETA</span>
+                      <span className="font-mono font-bold text-stone-50">
                         {al.snapshot.direction ?? "TL (45°)"} (ETA {al.snapshot.eta ?? "-"}j)
                       </span>
                     </div>
                   </div>
 
                   {/* Actions & Buttons */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#261E1E]">
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-line">
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/app/nodes/${al.node_id}`}
@@ -269,7 +269,7 @@ export default function AlertsCenterPage() {
                       <Link
                         href={`/a/mock-token-sample`}
                         target="_blank"
-                        className="text-xs text-neutral-400 hover:text-white font-medium flex items-center gap-1 pl-3 border-l border-[#2D2424]"
+                        className="text-xs text-stone-400 hover:text-stone-50 font-medium flex items-center gap-1 pl-3 border-l border-line"
                       >
                         <span>Tautan WhatsApp Petugas</span>
                         <ExternalLink className="w-3.5 h-3.5" />
@@ -280,7 +280,7 @@ export default function AlertsCenterPage() {
                       {al.status === "open" && (
                         <button
                           onClick={() => handleAcknowledge(al.id)}
-                          className="px-3 py-1.5 rounded-lg bg-[#EA580C] hover:bg-[#F97316] text-white text-xs font-semibold transition-colors"
+                          className="px-3 py-1.5 rounded-lg bg-ember-strong hover:bg-ember-strong-hover text-white text-xs font-semibold transition-colors"
                         >
                           Akui Alert (Acknowledge)
                         </button>
@@ -299,7 +299,7 @@ export default function AlertsCenterPage() {
 
                   {/* Modal / Inline form to resolve */}
                   {resolvingId === al.id && (
-                    <div className="mt-4 p-4 rounded-lg bg-[#141F18] border border-emerald-700/60 space-y-3">
+                    <div className="mt-4 p-4 rounded-lg bg-raised border border-emerald-700/60 space-y-3">
                       <div className="text-xs font-bold text-emerald-300">
                         Konfirmasi Penyelesaian Alert {al.id.slice(0, 8)}
                       </div>
@@ -308,12 +308,12 @@ export default function AlertsCenterPage() {
                         placeholder="Catatan penyelesaian (misal: Injeksi pipa nozzle 600L selesai, bara padam)"
                         value={resolveNote}
                         onChange={(e) => setResolveNote(e.target.value)}
-                        className="w-full bg-[#121010] border border-[#2D2424] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                        className="w-full bg-ink border border-line rounded-lg px-3 py-2 text-xs text-stone-50 focus:outline-none focus:border-emerald-500"
                       />
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => setResolvingId(null)}
-                          className="px-3 py-1 text-xs rounded bg-[#241D1D] text-neutral-400 hover:text-white"
+                          className="px-3 py-1 text-xs rounded bg-raised text-stone-400 hover:text-stone-50"
                         >
                           Batal
                         </button>
