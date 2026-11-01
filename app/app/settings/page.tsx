@@ -12,6 +12,7 @@ import {
   Send,
   CheckCircle2,
   AlertCircle,
+  Flame,
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -31,7 +32,7 @@ export default function SettingsPage() {
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 
-  const handleSendTestWa = async () => {
+  const handleSendTestWa = async (type: "emergency" | "resolved" = "emergency") => {
     if (!testNumber) return;
     setTesting(true);
     setTestSuccess(null);
@@ -39,7 +40,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/alerts/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target_phone: testNumber }),
+        body: JSON.stringify({ target_phone: testNumber, type }),
       });
       const json = await res.json();
       if (json.success) {
@@ -177,9 +178,9 @@ export default function SettingsPage() {
               {/* Uji Kirim Langsung */}
               <div className="pt-3 border-t border-line space-y-2 text-xs">
                 <label className="text-xs text-stone-400 block">
-                  Uji Kirim Pesan Alert Lapangan
+                  Uji Kirim Pesan Lapangan (Pusat Tes WhatsApp)
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     placeholder="Ketik nomor uji (contoh: 62812xxxxxxxx)"
@@ -187,18 +188,31 @@ export default function SettingsPage() {
                     onChange={(e) => setTestNumber(e.target.value)}
                     className="flex-1 bg-ink border border-line rounded-lg px-3 py-2 text-stone-50 font-mono text-xs focus:outline-none focus:border-ember"
                   />
-                  <button
-                    type="button"
-                    onClick={handleSendTestWa}
-                    disabled={testing}
-                    className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors shrink-0"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>Kirim Uji</span>
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleSendTestWa("emergency")}
+                      disabled={testing}
+                      className="px-3.5 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors shrink-0 disabled:opacity-50"
+                      title="Uji kirim peringatan siaga darurat (Status Siaga 1)"
+                    >
+                      <Flame className="w-3.5 h-3.5" />
+                      <span>Uji Alert Bahaya</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSendTestWa("resolved")}
+                      disabled={testing}
+                      className="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors shrink-0 disabled:opacity-50"
+                      title="Uji kirim notifikasi penanganan selesai & titik stabil"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Uji Titik Stabil</span>
+                    </button>
+                  </div>
                 </div>
                 {testSuccess && (
-                  <div className="p-2 rounded bg-ink text-xs text-emerald-300 font-mono">
+                  <div className="p-2.5 rounded bg-ink border border-line text-xs text-emerald-300 font-mono">
                     {testSuccess}
                   </div>
                 )}
@@ -209,7 +223,7 @@ export default function SettingsPage() {
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-ember-strong hover:bg-ember-strong-hover text-white text-xs font-bold  transition-all"
+                className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-ember-strong hover:bg-ember-strong-hover text-white text-xs font-bold transition-all"
               >
                 <Save className="w-4 h-4" />
                 <span>Simpan Seluruh Konfigurasi</span>
@@ -221,4 +235,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
