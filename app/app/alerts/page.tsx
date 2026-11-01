@@ -47,6 +47,7 @@ export default function AlertsCenterPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [resolveNote, setResolveNote] = useState<string>("");
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   const loadAlerts = async () => {
     try {
@@ -93,6 +94,8 @@ export default function AlertsCenterPage() {
       if (json.success) {
         setResolvingId(null);
         setResolveNote("");
+        setSuccessBanner(`Alert ${id.slice(0, 8)} berhasil diselesaikan! Notifikasi WhatsApp "Penanganan Selesai & Titik Stabil" telah otomatis dikirimkan ke Satgas.`);
+        setTimeout(() => setSuccessBanner(null), 6000);
         loadAlerts();
       }
     } catch (err) {
@@ -142,6 +145,14 @@ export default function AlertsCenterPage() {
               ))}
             </div>
           </div>
+
+          {/* Notifikasi Penyelesaian */}
+          {successBanner && (
+            <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-800 text-emerald-300 text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>{successBanner}</span>
+            </div>
+          )}
 
           {/* Alert Cards */}
           {loading ? (
@@ -335,4 +346,3 @@ export default function AlertsCenterPage() {
     </div>
   );
 }
-
