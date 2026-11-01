@@ -189,6 +189,12 @@ export function CommandMap({
   const [showBoundary, setShowBoundary] = useState<boolean>(true);
   const [showLegend, setShowLegend] = useState<boolean>(false);
 
+  // Peta dianggap siap setelah event "load". Penggambaran marker menunggu sinyal ini, bukan isStyleLoaded(),
+  // supaya data yang tiba lebih dulu tidak terlewat.
+  const [mapReady, setMapReady] = useState<boolean>(false);
+  // Selalu menunjuk ke updateMapLayers terbaru, agar handler peta tidak memakai data basi.
+  const updateLayersRef = useRef<() => void>(() => {});
+
   // Initialize Map
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
@@ -206,7 +212,8 @@ export function CommandMap({
     map.current.addControl(new maplibregl.NavigationControl(), "top-right");
 
     map.current.on("load", () => {
-      updateMapLayers();
+      setMapReady(true);
+      updateLayersRef.current();
     });
 
     return () => {
@@ -220,7 +227,7 @@ export function CommandMap({
     if (!map.current) return;
     map.current.setStyle(BASEMAPS[basemapKey].style as unknown as string);
     map.current.once("style.load", () => {
-      updateMapLayers();
+      updateLayersRef.current();
     });
   }, [basemapKey]);
 
@@ -233,12 +240,6 @@ export function CommandMap({
       duration: 1000,
     });
   }, [is3D]);
-
-  // Update GeoJSON layers when nodes or hotspots update
-  useEffect(() => {
-    if (!map.current || !map.current.isStyleLoaded()) return;
-    updateMapLayers();
-  }, [nodes, hotspots, showHeatmap, showFirms, showSpread, showWind]);
 
   const updateMapLayers = () => {
     const m = map.current;
@@ -583,6 +584,17 @@ export function CommandMap({
       if (m.getLayer("firms-label")) m.setLayoutProperty("firms-label", "visibility", "none");
     }
   };
+
+  // Diperbarui di setiap render agar closure selalu melihat nodes/hotspots/toggle terbaru.
+  useEffect(() => {
+    updateLayersRef.current = updateMapLayers;
+  });
+
+  // Gambar ulang saat data berubah. Harus setelah efek penyinkron di atas agar memakai fungsi terbaru.
+  useEffect(() => {
+    if (!mapReady) return;
+    updateLayersRef.current();
+  }, [mapReady, nodes, hotspots, showHeatmap, showFirms, showSpread, showWind]);
 
   const cycleBasemap = () => {
     const keys = Object.keys(BASEMAPS) as (keyof typeof BASEMAPS)[];

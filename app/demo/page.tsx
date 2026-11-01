@@ -16,6 +16,7 @@ import {
   Sliders,
 } from "lucide-react";
 import { PeatCrossSectionSvg } from "@/components/charts/PeatCrossSectionSvg";
+import { Logo } from "@/components/ui/Logo";
 import { apiErrorMessage } from "@/lib/api-error";
 
 interface Scenario {
@@ -185,7 +186,7 @@ export default function DemoPage() {
       <header className="h-16 border-b border-line bg-surface px-6 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2 group">
-            <span className="font-bold text-lg tracking-tight text-stone-50">PakuBara</span>
+            <Logo height={28} />
           </Link>
           <span className="text-stone-400 font-mono">/</span>
           <span className="text-xs font-semibold text-amber-400 flex items-center gap-1.5">

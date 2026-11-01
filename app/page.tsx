@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/ui/Logo";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { ImageSlot } from "@/components/ui/ImageSlot";
 import { PeatCrossSectionSvg } from "@/components/charts/PeatCrossSectionSvg";
@@ -38,8 +39,8 @@ export default function LandingPage() {
           className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between"
           aria-label="Utama"
         >
-          <Link href="/" className="font-bold text-xl tracking-tight text-stone-50">
-            PakuBara
+          <Link href="/" aria-label="PakuBara, ke beranda" className="flex items-center">
+            <Logo height={34} />
           </Link>
           <div className="flex items-center gap-1 sm:gap-3">
             <ThemeToggle />
