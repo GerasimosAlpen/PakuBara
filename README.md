@@ -42,7 +42,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 AI assistants were used as a helper during development, mainly for code suggestions and refactoring, the UI redesign, and drafting supporting documents (`DESIGN.md`, the antislop audit notes, and the image prompts in `docs/image-prompts.md`). The product idea, requirements (see the PRD and Concept Proposal), system design, hardware, and the final decisions come from the team, who remain responsible for everything in this repository.
 
-The illustrations for the landing page are not part of the repository yet. When they are added, they will be generated from the prompts in `docs/image-prompts.md` and noted here.
+The illustrations in `public/images/` (landing page steps and the empty state of the command map) were generated with an AI image tool from the prompts in `docs/image-prompts.md`, then cropped and converted to WebP for the layout.
 
 ### Third-party software
 
